@@ -1,0 +1,496 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Two Ways to Plan a Weld</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:      #F2F5F7;
+    --panel:       #FFFFFF;
+    --panel-edge:  #D6DEE4;
+    --ink:         #171C22;
+    --ink-soft:    #5A6773;
+    --ink-faint:   #8A96A1;
+    --action:      #A84B18;
+    --action-wash: #F6E7DD;
+    --target:      #1B6683;
+    --target-wash: #DEEBF1;
+    --alarm:       #97202A;
+    --alarm-wash:  #F7E2E3;
+    --shared:      #4A5661;
+    --rule:        #C6D0D8;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --ground:      #11151A;
+      --panel:       #1A2027;
+      --panel-edge:  #2E3842;
+      --ink:         #E3E9EF;
+      --ink-soft:    #A3B0BC;
+      --ink-faint:   #6F7D89;
+      --action:      #E8925C;
+      --action-wash: #2E2018;
+      --target:      #6FB9D6;
+      --target-wash: #14262E;
+      --alarm:       #E8848C;
+      --alarm-wash:  #2C1619;
+      --shared:      #97A4AF;
+      --rule:        #2E3842;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #11151A;
+    --panel:       #1A2027;
+    --panel-edge:  #2E3842;
+    --ink:         #E3E9EF;
+    --ink-soft:    #A3B0BC;
+    --ink-faint:   #6F7D89;
+    --action:      #E8925C;
+    --action-wash: #2E2018;
+    --target:      #6FB9D6;
+    --target-wash: #14262E;
+    --alarm:       #E8848C;
+    --alarm-wash:  #2C1619;
+    --shared:      #97A4AF;
+    --rule:        #2E3842;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 20px 96px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .col  { max-width: 66ch; }
+
+  header { padding: 72px 0 40px; border-bottom: 2px solid var(--ink); margin-bottom: 44px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: "Bitter", Georgia, serif; font-weight: 700;
+    font-size: clamp(2.1rem, 5.2vw, 3.3rem); line-height: 1.08;
+    margin: 0 0 18px; text-wrap: balance; letter-spacing: -.015em;
+  }
+  .standfirst { font-size: 1.12rem; color: var(--ink-soft); max-width: 60ch; margin: 0; }
+
+  h2 {
+    font-family: "Bitter", Georgia, serif; font-weight: 700;
+    font-size: 1.62rem; margin: 64px 0 6px; text-wrap: balance; letter-spacing: -.01em;
+  }
+  h2 .num {
+    font-family: "IBM Plex Mono", monospace; font-size: .74em; font-weight: 500;
+    color: var(--ink-faint); margin-right: .6em;
+  }
+  h3 {
+    font-family: "IBM Plex Sans", sans-serif; font-weight: 600;
+    font-size: 1.06rem; margin: 34px 0 4px; letter-spacing: .005em;
+  }
+  p { margin: 14px 0; }
+  strong { font-weight: 600; }
+  code {
+    font-family: "IBM Plex Mono", monospace; font-size: .87em;
+    background: var(--target-wash); padding: .1em .36em; border-radius: 3px;
+  }
+
+  figure { margin: 38px 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    font-size: .88rem; color: var(--ink-soft); margin-top: 12px;
+    padding-left: 14px; border-left: 2px solid var(--rule); max-width: 62ch;
+  }
+
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; margin: 22px 0; min-width: 540px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 500;
+  }
+  td.num, th.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .05em;
+    padding: .18em .5em; border-radius: 3px; white-space: nowrap;
+  }
+  .tag.a { background: var(--action-wash); color: var(--action); }
+  .tag.t { background: var(--target-wash); color: var(--target); }
+  .tag.x { background: var(--alarm-wash);  color: var(--alarm); }
+
+  .callout {
+    background: var(--panel); border: 1px solid var(--panel-edge);
+    border-left: 3px solid var(--alarm); padding: 18px 22px; margin: 30px 0; border-radius: 4px;
+  }
+  .callout.neutral { border-left-color: var(--shared); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child  { margin-bottom: 0; }
+  .callout .label {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--alarm); display: block; margin-bottom: 6px;
+  }
+  .callout.neutral .label { color: var(--ink-soft); }
+
+  .pair { display: grid; gap: 26px; grid-template-columns: 1fr; margin: 26px 0; }
+  @media (min-width: 760px) { .pair { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 4px; padding: 18px 20px; }
+  .card h4 {
+    font-family: "IBM Plex Mono", monospace; font-size: .76rem; letter-spacing: .1em;
+    text-transform: uppercase; margin: 0 0 10px;
+  }
+  .card.a h4 { color: var(--action); }
+  .card.t h4 { color: var(--target); }
+  .card p { font-size: .95rem; margin: 8px 0; }
+
+  ul { padding-left: 20px; } li { margin: 7px 0; }
+  footer { margin-top: 76px; padding-top: 22px; border-top: 1px solid var(--rule);
+           font-size: .87rem; color: var(--ink-soft); }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Autonomous multi-pass arc welding · architecture note · 17 Sep 2026</p>
+  <h1>Two Ways to Plan a Weld</h1>
+  <p class="standfirst">Both pipelines share the bead model, the representation, the simulators
+  and the controller. They fork at one question — <em>what does the search enumerate?</em> —
+  and that single difference decides how each one fails.</p>
+</header>
+
+<div class="col">
+<p>There are two readings of the planning problem. One searches over the knobs and checks what
+comes out. The other draws the finished weld first and solves backwards for the knobs. They are
+often discussed as rival architectures. They are not: they are the same machinery with the search
+pointed at different things.</p>
+</div>
+
+<h2><span class="num">01</span>Action-first — search the settings</h2>
+<div class="col">
+<p><strong>Plainly:</strong> you have four knobs. Guess a sequence of settings, ask the bead model
+what weld that produces, score how well the groove ends up filled, and keep guessing better. Like
+finding a radio station by turning the dial and listening after each turn.</p>
+<p><strong>Formally:</strong> the search enumerates action sequences <code>{V_k, x_TCP,k}</code>,
+evaluated by rolling <code>f</code> forward over a horizon and scoring the accumulated fill.
+CEM or MPPI resamples the distribution toward the better-scoring candidates.</p>
+</div>
+
+<figure>
+  <svg viewBox="0 0 820 250" role="img" aria-label="Action-first loop: groove scan feeds a sampler of roughly one thousand action sequences, each rolled forward through the bead model f and scored, resampled repeatedly, before the first action is committed.">
+    <defs>
+      <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--action)"/>
+      </marker>
+      <marker id="ar-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--shared)"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)" text-anchor="middle">
+      <rect x="15"  y="112" width="120" height="58" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="1.5"/>
+      <text x="75" y="136">groove scan</text><text x="75" y="154" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink-soft)">s_k</text>
+
+      <rect x="175" y="112" width="160" height="58" rx="4" fill="var(--action-wash)" stroke="var(--action)" stroke-width="1.5"/>
+      <text x="255" y="136">sample ~10³</text><text x="255" y="154">action sequences</text>
+
+      <rect x="375" y="112" width="120" height="58" rx="4" fill="var(--panel)" stroke="var(--action)" stroke-width="1.5"/>
+      <text x="435" y="136" font-weight="600">f</text><text x="435" y="154" font-size="12" fill="var(--ink-soft)">rolled forward</text>
+
+      <rect x="535" y="112" width="120" height="58" rx="4" fill="var(--panel)" stroke="var(--action)" stroke-width="1.5"/>
+      <text x="595" y="136">score the</text><text x="595" y="154">resulting fill</text>
+
+      <rect x="695" y="112" width="110" height="58" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="1.5"/>
+      <text x="750" y="136">commit</text><text x="750" y="154" font-size="12" fill="var(--ink-soft)">first action</text>
+
+      <g stroke="var(--action)" stroke-width="1.5" fill="none">
+        <line x1="335" y1="141" x2="367" y2="141" marker-end="url(#ar-a)"/>
+        <line x1="495" y1="141" x2="527" y2="141" marker-end="url(#ar-a)"/>
+        <path d="M595,112 L595,58 L255,58 L255,106" marker-end="url(#ar-a)"/>
+      </g>
+      <g stroke="var(--shared)" stroke-width="1.5" fill="none">
+        <line x1="135" y1="141" x2="167" y2="141" marker-end="url(#ar-n)"/>
+        <line x1="655" y1="141" x2="687" y2="141" marker-end="url(#ar-n)"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--action)">
+        <text x="351" y="132">calls</text>
+        <text x="425" y="48">resample — CEM / MPPI</text>
+      </g>
+      <text x="595" y="200" font-size="12" fill="var(--ink-soft)">every candidate costs an f-call</text>
+    </g>
+  </svg>
+  <figcaption>The loop runs entirely inside one decision: roughly a thousand <code>f</code>-calls
+  are spent before a single action is committed. <code>f</code> is consulted for its
+  <strong>values</strong> only.</figcaption>
+</figure>
+
+<h2><span class="num">02</span>Target-first — search the geometry</h2>
+<div class="col">
+<p><strong>Plainly:</strong> draw the finished weld first. Decide how many layers, how many beads
+per layer, and what each bead should look like. Then work out what settings produce each drawn
+bead. Like drawing a tile layout on paper before cutting any tiles — the drawing is cheap and can
+be redrawn a thousand times.</p>
+<p><strong>Formally:</strong> the search enumerates <em>fill keys</em>. A fill key is a 1-D array
+whose position is the layer index and whose value is the bead count in that layer, so
+<code>[2, 3, 3]</code> means two beads in layer one and three in each of layers two and three.
+Candidates are scored by intersection-over-union against sampled cross-sections, then the winner's
+per-pass targets are inverted: <code>V_k = f⁻¹(Δs*_k ; s_k)</code>.</p>
+</div>
+
+<figure>
+  <svg viewBox="0 0 820 300" role="img" aria-label="Target-first funnel: about 4,801 enumerated fill keys are scored geometrically by intersection-over-union, narrowed to a shortlist of twenty which the bead model re-ranks, leaving one plan whose per-pass targets are solved backwards into settings.">
+    <defs>
+      <marker id="ar-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--target)"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)" text-anchor="middle">
+      <rect x="30"  y="40" width="200" height="62" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="1.5"/>
+      <text x="130" y="65">groove + parameterised</text><text x="130" y="84">crown — the target</text>
+
+      <rect x="290" y="40" width="200" height="62" rx="4" fill="var(--target-wash)" stroke="var(--target)" stroke-width="1.5"/>
+      <text x="390" y="65">enumerate legal fill keys</text>
+      <text x="390" y="85" font-family="IBM Plex Mono, monospace" font-size="12">~4,801 candidates</text>
+
+      <rect x="550" y="40" width="200" height="62" rx="4" fill="var(--panel)" stroke="var(--target)" stroke-width="1.5"/>
+      <text x="650" y="65">IoU score</text>
+      <text x="650" y="85" font-size="12" fill="var(--ink-soft)">geometric — no physics</text>
+
+      <rect x="30"  y="196" width="200" height="62" rx="4" fill="var(--panel)" stroke="var(--target)" stroke-width="1.5"/>
+      <text x="130" y="221">shortlist 20 →</text><text x="130" y="240"><tspan font-weight="600">f</tspan> re-ranks</text>
+
+      <rect x="290" y="196" width="200" height="62" rx="4" fill="var(--panel)" stroke="var(--target)" stroke-width="1.5"/>
+      <text x="390" y="221">one plan — a target</text><text x="390" y="240">profile per pass</text>
+
+      <rect x="550" y="196" width="200" height="62" rx="4" fill="var(--target-wash)" stroke="var(--target)" stroke-width="1.5"/>
+      <text x="650" y="221">inverse solve</text>
+      <text x="650" y="241" font-family="IBM Plex Mono, monospace" font-size="12">V = f⁻¹(Δs*)</text>
+
+      <g stroke="var(--target)" stroke-width="1.5" fill="none">
+        <line x1="230" y1="71" x2="282" y2="71" marker-end="url(#ar-t)"/>
+        <line x1="490" y1="71" x2="542" y2="71" marker-end="url(#ar-t)"/>
+        <path d="M650,102 L650,149 L130,149 L130,190" marker-end="url(#ar-t)"/>
+        <line x1="230" y1="227" x2="282" y2="227" marker-end="url(#ar-t)"/>
+        <line x1="490" y1="227" x2="542" y2="227" marker-end="url(#ar-t)"/>
+      </g>
+      <text x="390" y="141" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--target)">4,801 → 20</text>
+      <text x="650" y="285" font-size="12" fill="var(--ink-soft)">f is consulted ~20×passes, then differentiated</text>
+    </g>
+  </svg>
+  <figcaption>A funnel, not a loop. The expensive model moves out of the inner search and into the
+  final stage — where it is asked for its <strong>derivatives</strong>, which is a strictly stronger
+  demand than being asked for its values.</figcaption>
+</figure>
+
+<h2><span class="num">03</span>The fork, and where they rejoin</h2>
+<div class="col">
+<p>Drawn together, the shared spine is obvious. One scan goes in; one committed action comes out;
+the weld-and-rescan loop is identical. Only the middle differs.</p>
+</div>
+
+<figure>
+  <svg viewBox="0 0 860 600" role="img" aria-label="Comparison diagram: a shared groove scan feeds a fork. The left branch, action-first, samples actions, rolls f forward and scores. The right branch, target-first, enumerates fill keys, scores them geometrically and inverts f. Both rejoin at the committed action, which feeds a shared weld, rescan and controller loop back to the scan.">
+    <defs>
+      <marker id="c-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--action)"/>
+      </marker>
+      <marker id="c-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--target)"/>
+      </marker>
+      <marker id="c-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--shared)"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)" text-anchor="middle">
+
+      <rect x="330" y="18" width="200" height="52" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="2"/>
+      <text x="430" y="40">groove scan</text>
+      <text x="430" y="58" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-soft)">SHARED</text>
+
+      <polygon points="430,92 528,140 430,188 332,140" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/>
+      <text x="430" y="136">what does the</text><text x="430" y="152">search enumerate?</text>
+
+      <text x="180" y="112" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--action)">SETTINGS</text>
+      <text x="686" y="112" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--target)">GEOMETRY</text>
+
+      <g>
+        <rect x="30" y="206" width="250" height="54" rx="4" fill="var(--action-wash)" stroke="var(--action)" stroke-width="1.5"/>
+        <text x="155" y="228">sample ~10³ action sequences</text>
+        <text x="155" y="247" font-size="12" fill="var(--ink-soft)">CEM / MPPI</text>
+
+        <rect x="30" y="282" width="250" height="54" rx="4" fill="var(--panel)" stroke="var(--action)" stroke-width="1.5"/>
+        <text x="155" y="304">roll <tspan font-weight="600">f</tspan> forward over horizon H</text>
+        <text x="155" y="323" font-size="12" fill="var(--ink-soft)">uses f's VALUES</text>
+
+        <rect x="30" y="358" width="250" height="54" rx="4" fill="var(--panel)" stroke="var(--action)" stroke-width="1.5"/>
+        <text x="155" y="380">score fill · resample</text>
+        <text x="155" y="399" font-size="12" fill="var(--ink-soft)">~10³ f-calls per decision</text>
+      </g>
+
+      <g>
+        <rect x="580" y="206" width="250" height="54" rx="4" fill="var(--target-wash)" stroke="var(--target)" stroke-width="1.5"/>
+        <text x="705" y="228">enumerate fill keys · IoU</text>
+        <text x="705" y="247" font-size="12" fill="var(--ink-soft)">~4,801, no physics</text>
+
+        <rect x="580" y="282" width="250" height="54" rx="4" fill="var(--panel)" stroke="var(--target)" stroke-width="1.5"/>
+        <text x="705" y="304">shortlist 20 → <tspan font-weight="600">f</tspan> re-ranks</text>
+        <text x="705" y="323" font-size="12" fill="var(--ink-soft)">~20×passes f-calls</text>
+
+        <rect x="580" y="358" width="250" height="54" rx="4" fill="var(--panel)" stroke="var(--target)" stroke-width="1.5"/>
+        <text x="705" y="380">inverse solve per pass</text>
+        <text x="705" y="399" font-size="12" fill="var(--ink-soft)">uses f's DERIVATIVES</text>
+      </g>
+
+      <rect x="305" y="452" width="250" height="52" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="2"/>
+      <text x="430" y="474">commit the action</text>
+      <text x="430" y="492" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-soft)">SHARED — paths rejoin</text>
+
+      <rect x="305" y="528" width="250" height="52" rx="4" fill="var(--panel)" stroke="var(--shared)" stroke-width="2"/>
+      <text x="430" y="550">weld · rescan · controller</text>
+      <text x="430" y="568" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-soft)">SHARED</text>
+
+      <g fill="none" stroke-width="1.6">
+        <line x1="430" y1="70" x2="430" y2="86" stroke="var(--shared)" marker-end="url(#c-n)"/>
+        <path d="M332,140 L155,140 L155,200" stroke="var(--action)" marker-end="url(#c-a)"/>
+        <path d="M528,140 L705,140 L705,200" stroke="var(--target)" marker-end="url(#c-t)"/>
+        <line x1="155" y1="260" x2="155" y2="276" stroke="var(--action)" marker-end="url(#c-a)"/>
+        <line x1="155" y1="336" x2="155" y2="352" stroke="var(--action)" marker-end="url(#c-a)"/>
+        <line x1="705" y1="260" x2="705" y2="276" stroke="var(--target)" marker-end="url(#c-t)"/>
+        <line x1="705" y1="336" x2="705" y2="352" stroke="var(--target)" marker-end="url(#c-t)"/>
+        <path d="M155,412 L155,452 L299,452" stroke="var(--action)" marker-end="url(#c-a)"/>
+        <path d="M705,412 L705,452 L561,452" stroke="var(--target)" marker-end="url(#c-t)"/>
+        <line x1="430" y1="504" x2="430" y2="522" stroke="var(--shared)" marker-end="url(#c-n)"/>
+        <path d="M305,554 L286,554 L286,44 L324,44" stroke="var(--shared)" stroke-dasharray="5 4" marker-end="url(#c-n)"/>
+      </g>
+      <text x="252" y="300" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-faint)" text-anchor="end">rescan</text>
+    </g>
+  </svg>
+  <figcaption>The two paths are the same length and rejoin at the committed action. The labels that
+  matter are on the third row of each column: <strong>values</strong> on the left,
+  <strong>derivatives</strong> on the right. Everything in the asymmetry below follows from that.</figcaption>
+</figure>
+
+<h2><span class="num">04</span>Side by side</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th></th><th>Action-first</th><th>Target-first</th></tr></thead>
+  <tbody>
+    <tr><td><strong>search enumerates</strong></td><td>action sequences</td><td>fill plans</td></tr>
+    <tr><td><strong>f-calls per decision</strong></td><td class="num">~10³</td><td class="num">~20 × passes</td></tr>
+    <tr><td><strong>f is used by</strong></td><td>its values</td><td>its values <em>and derivatives</em></td></tr>
+    <tr><td><strong>whole-groove awareness</strong></td><td>only within horizon H</td><td>structural — plan covers the groove</td></tr>
+    <tr><td><strong>pass count</strong></td><td>emerges from the search</td><td>chosen by the fill key</td></tr>
+    <tr><td><strong>knob/target mismatch</strong></td><td>implicit — bad targets never proposed</td><td>explicit — residual split</td></tr>
+    <tr><td><strong>a weak f costs</strong></td><td>accuracy</td><td><span class="tag x">correctness, silently</span></td></tr>
+    <tr><td><strong>status</strong></td><td><span class="tag a">f, trainer, reconstruction built</span></td><td><span class="tag t">nothing built</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="num">05</span>The asymmetry that decides the ordering</h2>
+<div class="col">
+<p>Everything in that table is a trade — cost against coverage, maturity against generality. One
+row is not a trade.</p>
+<p>Action-first reads <code>f</code>'s <strong>values</strong>. Target-first steers by
+<code>f</code>'s <strong>derivatives</strong>. Differentiating a model is a strictly stronger demand
+than evaluating it, and the two failure modes are not comparable in severity.</p>
+</div>
+
+<div class="pair">
+  <div class="card a">
+    <h4>Action-first, with a biased f</h4>
+    <p>The bead estimate is consistently wrong. The controller measures the real surface every pass
+    and attributes the residual, so bias appears as a correction signal and gets absorbed.</p>
+    <p>Measured: a one-off disturbance <strong>decays</strong>, 0.070 → 0.036 mm over eight passes.</p>
+  </div>
+  <div class="card t">
+    <h4>Target-first, with a biased f</h4>
+    <p>The gradient field tilts. The solver walks confidently to the wrong settings and reports a
+    <em>low loss</em> doing it.</p>
+    <p>Surrogate bias, unlike variance, does not average away with more samples — so more search
+    does not rescue it.</p>
+  </div>
+</div>
+
+<div class="callout">
+  <span class="label">Measured in-house, 17 Sep 2026</span>
+  <p><strong>22 of 36 trained checkpoints cannot see the groove at all.</strong> Flattening a real
+  groove to a flat plate moves their prediction by less than 0.01 mm, against a ~1 mm per-pass
+  spec. They fit to a plausible ~1.2 mm height RMSE using 8 of 169 inputs. Plain ReLU produced
+  this in <strong>20 of 20</strong> runs, via a dying-ReLU cascade that severs the geometry branch.</p>
+  <p>A surface-blind <code>f</code> has <strong>identically zero gradient with respect to the
+  groove</strong>. Action-first still limps, because it perturbs actions and rescans. Target-first
+  would return the same settings for every groove and score itself well while doing it.</p>
+  <p>This is why the branch audit is a <em>prerequisite</em> for target-first, not a side quest —
+  and why the chosen ordering builds the fill planner first and the gradient solver second.</p>
+</div>
+
+<h2><span class="num">06</span>What each buys that the other cannot</h2>
+<div class="col">
+<h3>Action-first wins on robustness and maturity</h3>
+<p>It tolerates a mediocre <code>f</code>, most of it exists, and its failure mode is visible in the
+residual. It needs no inverse solver, no fill-key enumerator, no crown parameterisation.</p>
+
+<h3>Target-first wins on two things that cannot be bought otherwise</h3>
+<ul>
+  <li><strong>Whole-groove awareness is structural.</strong> Action-first sees only its horizon. A
+  plan that fills beautifully for five passes and strands the last two against a wall is invisible
+  until it happens.</li>
+  <li><strong>Pass count becomes a decision.</strong> In action-first it is whatever the search
+  produces. The patent's tiebreaker — equal bead count, fewer layers wins — encodes a real process
+  preference, since arc starts and stops are where defects concentrate.</li>
+</ul>
+
+<h3>Can action-first borrow the missing piece?</h3>
+<p>Half of it. A cheap geometric pre-score is easy to bolt on and directly attacks the ~10³ call
+count. Whole-groove awareness is <em>not</em> transferable: the natural fix is extending the horizon
+to the whole build, and that is exactly what the rollout arithmetic forbids. Error compounds,
+<code>K = H = 5</code> came from a measured bias/variance crossover, and the plant is open-loop
+unstable. You cannot plan 31 passes by rolling <code>f</code> forward and expect the last one to
+mean anything.</p>
+</div>
+
+<h2><span class="num">07</span>What the measurements say today</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Quantity</th><th class="num">Measured</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>f height RMSE, core test</td><td class="num">1.0 – 1.2 mm</td><td><code>tools/train_f.py</code></td></tr>
+    <tr><td>per-pass accuracy spec</td><td class="num">~1 mm</td><td><code>learning/10</code></td></tr>
+    <tr><td>rollout drift, 10 passes, <em>seeing</em> model</td><td class="num">≤ 0.073 mm</td><td><code>tools/rollout_drift.py</code></td></tr>
+    <tr><td>rollout drift, <em>blind</em> model</td><td class="num">exactly 0.000</td><td>the tell that found the bug</td></tr>
+    <tr><td>checkpoints that cannot see the surface</td><td class="num">22 of 36</td><td><code>tools/branch_audit.py</code></td></tr>
+    <tr><td>sustained-bias accumulation</td><td class="num">≈ N^0.67</td><td><code>learning/12</code></td></tr>
+    <tr><td>one-off disturbance, 8 passes</td><td class="num">0.070 → 0.036 mm</td><td><code>learning/12</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout neutral">
+  <span class="label">Read the drift number carefully</span>
+  <p>Drift is small — but <code>f</code>'s <em>single-step</em> error is already at the spec, and the
+  drift sample thins to <strong>n = 4 builds by pass 8</strong>, because the test split holds few
+  long builds. Low drift over ten passes is real; it is not yet evidence about thirty-one.</p>
+</div>
+
+<h2><span class="num">08</span>Open decisions</h2>
+<div class="col">
+<p>Two target-first decisions were taken and have no code behind them: the <strong>asymmetric
+V-groove</strong> and the <strong>parameterised crown</strong>. <code>GrooveSpec</code> is still
+three numbers and symmetric, and the 850-build corpus assumes it — widening the groove description
+invalidates that corpus for any model that must generalise across wall angles.</p>
+<p>One decision was never made at all: <strong>what the fill planner optimises</strong>. Fewest
+passes within the area envelope, a fixed heat-input budget per pass, or no objective with the
+solver doing all the optimising. It determines whether pass count is an output of the search or an
+input to it, so the planner cannot be specified until it is settled.</p>
+</div>
+
+<footer>
+  Sources in repo: <code>docs/pipeline.md</code> · <code>docs/pipeline-target-first.md</code> ·
+  <code>docs/pipelines-compared.md</code> ·
+  <code>docs/research/2026-09-17-inverse-through-a-learned-forward-model.md</code> ·
+  <code>learning/13-training-f-stage-1.md</code> §3A
+</footer>
+</div>
+
+</body></html>

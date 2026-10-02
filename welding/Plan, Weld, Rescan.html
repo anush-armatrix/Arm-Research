@@ -1,0 +1,1433 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Plan, Weld, Rescan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root{
+    --ground:#eef1f4; --card:#fafbfc; --card-2:#f2f5f8;
+    --ink:#1c242e; --ink-2:#3d4a58; --muted:#6b7887; --rule:#d3dae1; --rule-2:#e3e9ee;
+    --arc:#2f6fab; --arc-soft:#dce8f3; --arc-line:#2f6fab;
+    --hot:#c4622d; --hot-soft:#f6e4d8;
+    --good:#3d7a5f; --good-soft:#dceae3;
+    --shadow:0 1px 2px rgba(28,36,46,.05),0 10px 28px -14px rgba(28,36,46,.14);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#101519; --card:#171e25; --card-2:#1c242c;
+      --ink:#e7ecf1; --ink-2:#bac5d0; --muted:#8595a3; --rule:#2a333d; --rule-2:#222b34;
+      --arc:#6aa5da; --arc-soft:#1a2b3b; --arc-line:#6aa5da;
+      --hot:#e2895a; --hot-soft:#31221a;
+      --good:#6aab8a; --good-soft:#1b2a23;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#101519; --card:#171e25; --card-2:#1c242c;
+    --ink:#e7ecf1; --ink-2:#bac5d0; --muted:#8595a3; --rule:#2a333d; --rule-2:#222b34;
+    --arc:#6aa5da; --arc-soft:#1a2b3b; --arc-line:#6aa5da;
+    --hot:#e2895a; --hot-soft:#31221a;
+    --good:#6aab8a; --good-soft:#1b2a23;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:17px;line-height:1.62;
+    margin:0;padding:0 20px 100px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto}
+  .prose{max-width:66ch}
+
+  header.mast{padding:74px 0 38px;border-bottom:2px solid var(--ink);margin-bottom:54px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--arc);margin:0 0 18px;font-weight:500}
+  h1{font-family:Archivo,system-ui,sans-serif;font-weight:700;
+    font-size:clamp(2.5rem,7vw,4.5rem);line-height:.97;letter-spacing:-.03em;
+    margin:0 0 22px;text-wrap:balance}
+  h1 .sep{color:var(--arc)}
+  .standfirst{font-size:1.22rem;line-height:1.5;color:var(--ink-2);max-width:60ch;margin:0}
+
+  section{margin:0 0 72px}
+  h2{font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:1.76rem;
+    letter-spacing:-.017em;line-height:1.14;margin:0 0 6px;text-wrap:balance}
+  h2 .num{font-family:"IBM Plex Mono",monospace;font-size:.84rem;color:var(--arc);
+    font-weight:600;display:block;margin-bottom:9px;letter-spacing:.12em}
+  h3{font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:1.13rem;
+    letter-spacing:-.008em;margin:36px 0 8px}
+  h4.sub{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--muted);font-weight:600;margin:30px 0 10px}
+  p{margin:0 0 17px}
+  .lede{font-size:1.07rem;color:var(--ink-2);margin-bottom:26px;max-width:63ch}
+  strong{font-weight:600}
+  code,.mono{font-family:"IBM Plex Mono",monospace;font-size:.87em}
+  code{background:var(--arc-soft);padding:.1em .34em;border-radius:3px;color:var(--ink)}
+
+  .key{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--arc);
+    border-radius:0 9px 9px 0;padding:20px 24px;margin:26px 0;box-shadow:var(--shadow);max-width:66ch}
+  .key p:last-child{margin-bottom:0}
+  .key .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--arc);display:block;margin-bottom:9px;font-weight:600}
+  .warn{border-left-color:var(--hot)} .warn .tag{color:var(--hot)}
+  .ok{border-left-color:var(--good)} .ok .tag{color:var(--good)}
+
+  figure{margin:36px 0;background:var(--card);border:1px solid var(--rule);
+    border-radius:12px;padding:28px 28px 18px;box-shadow:var(--shadow);overflow-x:auto}
+  figure svg{display:block;max-width:100%;height:auto;margin:0 auto}
+  figcaption{font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.6;
+    color:var(--muted);margin-top:22px;padding-top:14px;border-top:1px solid var(--rule)}
+  figcaption b{color:var(--ink-2);font-weight:600}
+  .fignum{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--arc);font-weight:600;margin:0 0 18px}
+
+  .tw{overflow-x:auto;margin:26px 0}
+  table{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;
+    font-size:13px;font-variant-numeric:tabular-nums}
+  th{text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--muted);padding:0 14px 9px 0;border-bottom:1.5px solid var(--rule);white-space:nowrap}
+  td{padding:10px 14px 10px 0;border-bottom:1px solid var(--rule-2);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  td.n{text-align:right;padding-right:22px;white-space:nowrap}
+  .yes{color:var(--good);font-weight:600} .no{color:var(--hot);font-weight:600}
+  .dim{color:var(--muted)}
+
+  .parts{display:grid;gap:18px;margin:30px 0;grid-template-columns:repeat(auto-fit,minmax(262px,1fr))}
+  .part{background:var(--card);border:1px solid var(--rule);border-radius:11px;
+    padding:22px;box-shadow:var(--shadow)}
+  .part .role{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--arc);margin:0 0 12px;font-weight:600}
+  .part h4{font-family:Archivo,system-ui,sans-serif;font-size:1rem;font-weight:600;margin:0 0 6px}
+  .part p{font-size:.94rem;margin:0;color:var(--ink-2)}
+  .part .io{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+    margin-top:12px;padding-top:10px;border-top:1px solid var(--rule-2)}
+
+  .steps{counter-reset:s;margin:26px 0;max-width:66ch}
+  .step{position:relative;padding:0 0 22px 46px;border-left:1.5px solid var(--rule);margin-left:13px}
+  .step:last-child{border-left-color:transparent;padding-bottom:0}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:-13px;top:0;
+    width:26px;height:26px;border-radius:50%;background:var(--arc);color:#fff;
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+    display:flex;align-items:center;justify-content:center}
+  .step h4{font-family:Archivo,system-ui,sans-serif;font-size:1.02rem;font-weight:600;margin:2px 0 5px}
+  .step p{font-size:.96rem;margin:0;color:var(--ink-2)}
+
+  .eq{background:var(--card-2);border:1px solid var(--rule);border-radius:9px;
+    padding:18px 20px;margin:22px 0;font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+    line-height:1.85;overflow-x:auto;white-space:pre}
+  .eq .lbl{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--arc);font-weight:600;margin-bottom:12px;white-space:normal}
+  .eq .c{color:var(--muted)}
+  .eq .hi{color:var(--arc);font-weight:600}
+  .eq .hot{color:var(--hot);font-weight:600}
+  .eq .gd{color:var(--good);font-weight:600}
+  .shapes{display:grid;gap:10px;margin:22px 0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .shape{background:var(--card-2);border:1px solid var(--rule);border-radius:8px;padding:13px 15px;
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+  .shape b{display:block;color:var(--arc);font-size:10px;letter-spacing:.11em;
+    text-transform:uppercase;margin-bottom:5px}
+  ul{margin:0 0 17px;padding-left:22px;max-width:66ch}
+  li{margin-bottom:8px}
+  hr{border:none;border-top:1px solid var(--rule);margin:58px 0}
+  footer{color:var(--muted);font-size:13.5px;padding-top:22px;border-top:1px solid var(--rule);max-width:66ch}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Autonomous multi-pass arc welding · design reference</p>
+  <h1>Plan<span class="sep">,</span> Weld<span class="sep">,</span> Rescan</h1>
+  <p class="standfirst">A neural bead model, a search that calls it, and a loop that checks the
+  result. Three components, one measurement holding them together — and one thing the physics
+  refuses to let us do.</p>
+</header>
+
+<section class="prose">
+  <h2><span class="num">01</span>The problem</h2>
+  <p class="lede">Filling a deep weld groove takes 20–30 separate passes, each laid on top of the
+  last. Every pass changes the shape the next one lands on. Get one slightly wrong and the error
+  doesn't sit still — the next pass builds on it.</p>
+  <p>The classical way to predict a weld is finite-element simulation, far too slow for a control
+  loop. So we train a fast stand-in — and then face the question that ruins most fast stand-ins:
+  <strong>what happens when you feed it its own output thirty times?</strong></p>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">02</span>Three components, three jobs</h2>
+    <p class="lede">The most useful decision in this design is keeping these separate. A bad weld
+    could come from any of the three — and if they're one component, you can't tell which.</p>
+  </div>
+
+  <div class="parts">
+    <div class="part">
+      <p class="role">Learned · a network</p>
+      <h4>f — the bead model</h4>
+      <p>“With these settings, on this surface, what bead do I get?” Replaces the slow physics.
+      Microseconds per answer, which is what makes searching possible at all.</p>
+      <p class="io">in: surface + settings → out: 86 numbers</p>
+    </div>
+    <div class="part">
+      <p class="role">Ordinary code · a search</p>
+      <h4>The planner</h4>
+      <p>“What settings should I use?” Proposes about a thousand candidate plans, asks <em>f</em>
+      about each, discards the illegal ones, keeps the best, refines.</p>
+      <p class="io">in: measured surface → out: 5-pass plan, 1 committed</p>
+    </div>
+    <div class="part">
+      <p class="role">Ordinary code · a state machine</p>
+      <h4>The controller</h4>
+      <p>“What actually happened, and what does it mean?” Scans the real weld, subtracts the
+      prediction, classifies the difference, and decides whether to continue, warn, or stop.</p>
+      <p class="io">in: scan + prediction → out: replan, or a fault</p>
+    </div>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 1 — the call graph</p>
+    <svg viewBox="0 0 900 288" role="img" aria-label="The controller calls the planner once per pass. The planner calls f about a thousand times per decision and receives predicted beads. The planner returns one committed action to the controller. Only f is a learned model.">
+      <defs>
+        <marker id="f1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+        <marker id="f1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+      </defs>
+
+      <rect x="28" y="86" width="212" height="116" rx="10" fill="#dce8f3" stroke="#2f6fab" stroke-width="2.2"/>
+      <text x="134" y="120" text-anchor="middle" font-family="Archivo,sans-serif" font-size="21" font-weight="700" fill="#2f6fab">f</text>
+      <text x="134" y="144" text-anchor="middle" font-size="12.5" fill="#1c242e">bead model</text>
+      <text x="134" y="164" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#3d4a58">169 → 86</text>
+      <rect x="86" y="176" width="96" height="17" rx="8.5" fill="#2f6fab"/>
+      <text x="134" y="188" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#fff" letter-spacing="1.1">LEARNED</text>
+
+      <rect x="344" y="86" width="212" height="116" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <text x="450" y="122" text-anchor="middle" font-family="Archivo,sans-serif" font-size="16" font-weight="600" fill="currentColor">planner</text>
+      <text x="450" y="145" text-anchor="middle" font-size="12" fill="currentColor" opacity=".85">sample · score · refine</text>
+      <text x="450" y="166" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="currentColor" opacity=".6">5 passes ahead</text>
+      <text x="450" y="185" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".5">commits 1</text>
+
+      <rect x="660" y="86" width="212" height="116" rx="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <text x="766" y="122" text-anchor="middle" font-family="Archivo,sans-serif" font-size="16" font-weight="600" fill="currentColor">controller</text>
+      <text x="766" y="145" text-anchor="middle" font-size="12" fill="currentColor" opacity=".85">measure · judge · replan</text>
+      <text x="766" y="166" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="currentColor" opacity=".6">once per pass</text>
+      <text x="766" y="185" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".5">can halt the job</text>
+
+      <line x1="656" y1="120" x2="562" y2="120" stroke="currentColor" stroke-width="1.6" marker-end="url(#f1a)"/>
+      <text x="609" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".8">asks</text>
+      <line x1="340" y1="120" x2="246" y2="120" stroke="#2f6fab" stroke-width="1.8" marker-end="url(#f1b)"/>
+      <text x="293" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">~10³ ×</text>
+
+      <path d="M134,208 L134,240 L450,240 L450,208" fill="none" stroke="#2f6fab" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#f1b)"/>
+      <text x="292" y="257" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#2f6fab">predicted bead · 86 numbers</text>
+
+      <path d="M450,78 L450,50 L766,50 L766,78" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#f1a)"/>
+      <text x="608" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".75">one action to execute</text>
+
+      <line x1="28" y1="272" x2="872" y2="272" stroke="currentColor" stroke-width="1" opacity=".16"/>
+      <text x="134" y="286" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#2f6fab" opacity=".9">trained offline, frozen</text>
+      <text x="608" y="286" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="currentColor" opacity=".55">runs live, deterministic, inspectable</text>
+    </svg>
+    <figcaption><b>Only the left box is a neural network.</b> <em>f</em> replaces the one part too
+    slow to compute — the physics. Nothing else in the loop is slow enough to need replacing, and
+    keeping the other two as ordinary code means they can be read, stepped through and blamed.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">03</span>Inside f: two kinds of input</h2>
+    <p class="lede">The groove is a <em>shape</em> — 161 height readings in a row, where neighbours
+    matter. The machine settings are <em>eight unrelated numbers</em>. Push both through the same
+    layers and you throw away the fact that the shape is a shape.</p>
+    <p>So each gets its own treatment and they meet at the end. The settings also reach across to
+    <strong>gate the geometry</strong>: weld hot and slow and a wide span of surrounding metal is
+    relevant; weld cold and fast and only the metal at the arc is. Stating that coupling directly
+    is cheaper than making the network discover it through depth.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 2 — the two branches, and what comes out</p>
+    <svg viewBox="0 0 900 480" role="img" aria-label="The 161-point cross-section passes through a parameter-guided attention gate, a three-block 1-D CNN with 16, 32 and 64 filters, then pooling to 64 dimensions. The eight scalars pass through two dense layers to 64 dimensions and also guide the gate. The two are concatenated to 128 dimensions, then produce 86 outputs split into two edges, one area, two edge angles and 81 heights.">
+      <defs>
+        <marker id="f2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+        <marker id="f2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+      </defs>
+
+      <!-- inputs -->
+      <rect x="42" y="20" width="266" height="60" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1.4"/>
+      <text x="175" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#1c242e">the groove surface</text>
+      <text x="175" y="64" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#3d4a58">161 heights · 0.1 mm apart</text>
+      <!-- mini profile glyph -->
+      <polyline points="60,74 84,74 108,62 132,50 156,44 180,44 204,50 228,62 252,74 290,74" fill="none" stroke="#2f6fab" stroke-width="1.6" opacity=".55"/>
+
+      <rect x="592" y="20" width="266" height="60" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1.4"/>
+      <text x="725" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#1c242e">the machine settings</text>
+      <text x="725" y="64" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#3d4a58">current · voltage · speed · wire</text>
+
+      <line x1="175" y1="80" x2="175" y2="112" stroke="currentColor" stroke-width="1.5" marker-end="url(#f2a)"/>
+      <line x1="725" y1="80" x2="725" y2="224" stroke="currentColor" stroke-width="1.5" marker-end="url(#f2a)"/>
+      <text x="740" y="150" font-size="10.5" fill="currentColor" opacity=".55">gravity direction</text>
+      <text x="740" y="167" font-size="10.5" fill="currentColor" opacity=".55">plate temperature</text>
+      <text x="740" y="184" font-size="10.5" fill="currentColor" opacity=".55">torch placement</text>
+
+      <!-- attention -->
+      <rect x="42" y="114" width="266" height="62" rx="8" fill="none" stroke="#2f6fab" stroke-width="2.2"/>
+      <text x="175" y="139" text-anchor="middle" font-size="13" font-weight="600" fill="#2f6fab">attention gate</text>
+      <text x="175" y="159" text-anchor="middle" font-size="11" fill="currentColor" opacity=".8">turns regions up or down</text>
+
+      <path d="M592,50 C440,50 348,96 312,132" fill="none" stroke="#2f6fab" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#f2b)"/>
+      <text x="452" y="86" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">the settings decide what matters</text>
+
+      <line x1="175" y1="176" x2="175" y2="208" stroke="currentColor" stroke-width="1.5" marker-end="url(#f2a)"/>
+
+      <!-- cnn -->
+      <rect x="42" y="210" width="266" height="76" rx="8" fill="var(--card-2)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="175" y="234" text-anchor="middle" font-size="13" fill="currentColor">1-D CNN · 3 blocks</text>
+      <g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor">
+        <rect x="66" y="246" width="52" height="20" rx="4" fill="#2f6fab" opacity=".18"/><text x="92" y="260" text-anchor="middle">16</text>
+        <rect x="130" y="246" width="52" height="20" rx="4" fill="#2f6fab" opacity=".32"/><text x="156" y="260" text-anchor="middle">32</text>
+        <rect x="194" y="246" width="52" height="20" rx="4" fill="#2f6fab" opacity=".48"/><text x="220" y="260" text-anchor="middle">64</text>
+        <text x="278" y="260" text-anchor="middle" opacity=".6">filters</text>
+      </g>
+      <text x="175" y="279" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">reads shape, ignores absolute position</text>
+
+      <rect x="592" y="226" width="266" height="60" rx="8" fill="var(--card-2)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="725" y="252" text-anchor="middle" font-size="13" fill="currentColor">2 dense layers</text>
+      <text x="725" y="271" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">no spatial structure to preserve</text>
+
+      <line x1="175" y1="286" x2="175" y2="314" stroke="currentColor" stroke-width="1.5" marker-end="url(#f2a)"/>
+      <line x1="725" y1="286" x2="725" y2="314" stroke="currentColor" stroke-width="1.5" marker-end="url(#f2a)"/>
+      <text x="175" y="330" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="currentColor">64-d</text>
+      <text x="725" y="330" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="currentColor">64-d</text>
+
+      <!-- fusion -->
+      <path d="M175,340 L175,362 L725,362 L725,340" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <rect x="320" y="364" width="260" height="34" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1.6"/>
+      <text x="450" y="386" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#1c242e">concat 128-d → 2 dense</text>
+      <line x1="450" y1="398" x2="450" y2="420" stroke="#2f6fab" stroke-width="1.6" marker-end="url(#f2b)"/>
+
+      <!-- outputs -->
+      <g font-family="IBM Plex Mono,monospace" font-size="10.5">
+        <rect x="42" y="422" width="176" height="42" rx="7" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <text x="130" y="440" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">2 edges</text>
+        <text x="130" y="456" text-anchor="middle" fill="currentColor" opacity=".65">where the bead ends</text>
+
+        <rect x="230" y="422" width="176" height="42" rx="7" fill="none" stroke="#2f6fab" stroke-width="1.6"/>
+        <text x="318" y="440" text-anchor="middle" font-size="11.5" font-weight="600" fill="#2f6fab">1 area</text>
+        <text x="318" y="456" text-anchor="middle" fill="currentColor" opacity=".65">enforced, not guessed</text>
+
+        <rect x="418" y="422" width="176" height="42" rx="7" fill="none" stroke="#c4622d" stroke-width="1.6"/>
+        <text x="506" y="440" text-anchor="middle" font-size="11.5" font-weight="600" fill="#c4622d">2 edge angles</text>
+        <text x="506" y="456" text-anchor="middle" fill="currentColor" opacity=".65">the 90° defect labels</text>
+
+        <rect x="606" y="422" width="252" height="42" rx="7" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <text x="732" y="440" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">81 heights</text>
+        <text x="732" y="456" text-anchor="middle" fill="currentColor" opacity=".65">signed — remelt is negative</text>
+      </g>
+      <path d="M450,420 L130,420 M450,420 L318,420 M450,420 L506,420 M450,420 L732,420" stroke="#2f6fab" stroke-width="1.2" opacity=".5" fill="none"/>
+    </svg>
+    <figcaption><b>86 outputs, four kinds.</b> The <em>area</em> is special — it is fixed by simple
+    bookkeeping (metal in = wire fed ÷ travel speed), so the reconstruction <b>enforces</b> it. The
+    model may be wrong about shape; it is not permitted to invent or destroy metal. The edge angles
+    are separate outputs because a 90° edge is the lack-of-fusion criterion, and deriving that
+    angle from the heights was measured to cost up to 24° — useless for a 90° threshold.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">04</span>The idea the whole design rests on</h2>
+    <p class="lede">Two broken watches. One randomly gains or loses a few seconds an hour — after a
+    week it's still roughly right, because the errors cancel. The other gains exactly two seconds
+    every hour — after a week it's six minutes out.</p>
+    <p><strong>Same error per hour. Wildly different after a week.</strong> Welding is the second
+    watch. If the model predicts beads a hair too tall every time, pass thirty sits on twenty-nine
+    accumulated hairs.</p>
+    <p>The trap: the standard way to score a model — squared error — punishes the <em>size</em> of
+    mistakes and is blind to their <em>direction</em>. A model that is always +0.1 mm scores
+    identically to one that is randomly ±0.1 mm. Nothing discourages the watch that always gains.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 3 — why a small consistent error beats a large random one</p>
+    <svg viewBox="0 0 900 400" role="img" aria-label="Chart of accumulated error against pass number. The consistent-error line rises straight to 3.1 millimetres by pass 31. The random-error curve rises as a square root to 1.95 millimetres. They cross at pass 12.3. A rescan at pass 5 resets the accumulation.">
+      <defs>
+        <linearGradient id="g-hot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c4622d" stop-opacity=".22"/><stop offset="100%" stop-color="#c4622d" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g stroke="currentColor" opacity=".12" stroke-width="1">
+        <line x1="96" y1="310" x2="846" y2="310"/><line x1="96" y1="250" x2="846" y2="250"/>
+        <line x1="96" y1="190" x2="846" y2="190"/><line x1="96" y1="130" x2="846" y2="130"/>
+        <line x1="96" y1="70"  x2="846" y2="70"/>
+      </g>
+      <line x1="96" y1="46" x2="96" y2="310" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="96" y1="310" x2="846" y2="310" stroke="currentColor" stroke-width="1.5"/>
+
+      <g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="end">
+        <text x="88" y="314">0</text><text x="88" y="254">0.8</text><text x="88" y="194">1.6</text>
+        <text x="88" y="134">2.4</text><text x="88" y="74">3.2</text>
+      </g>
+      <text x="30" y="178" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7" transform="rotate(-90 30 178)" text-anchor="middle">accumulated error (mm)</text>
+      <g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">
+        <text x="96" y="330">0</text><text x="217" y="330">5</text><text x="393" y="330">12.3</text>
+        <text x="580" y="330">20</text><text x="846" y="330">31</text>
+      </g>
+      <text x="471" y="352" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">passes welded</text>
+
+      <path d="M96,310 L193,292 L290,274 L387,257 L484,239 L581,221 L678,204 L775,186 L846,173 L846,310 Z" fill="url(#g-hot)"/>
+      <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="7 4" opacity=".7"
+        points="96,310 144,251 193,227 241,208 290,194 338,182 387,171 435,162 484,154 532,146 581,139 629,132 678,126 727,121 775,115 824,110 846,108"/>
+      <polyline fill="none" stroke="#c4622d" stroke-width="2.8"
+        points="96,310 193,292 290,274 387,257 484,239 581,221 678,204 775,186 846,173"/>
+
+      <line x1="393" y1="254" x2="393" y2="310" stroke="#2f6fab" stroke-width="1.3" stroke-dasharray="3 3"/>
+      <circle cx="393" cy="254" r="5.5" fill="var(--card)" stroke="#2f6fab" stroke-width="2.4"/>
+      <text x="408" y="243" font-family="IBM Plex Mono,monospace" font-size="11.5" font-weight="600" fill="#2f6fab">crossover · pass 12.3</text>
+
+      <text x="854" y="176" font-family="IBM Plex Mono,monospace" font-size="11" fill="#c4622d" font-weight="600">consistent</text>
+      <text x="854" y="111" font-family="IBM Plex Mono,monospace" font-size="11" fill="currentColor" opacity=".75">random</text>
+
+      <rect x="96" y="46" width="121" height="264" fill="#2f6fab" opacity=".07"/>
+      <line x1="217" y1="46" x2="217" y2="310" stroke="#2f6fab" stroke-width="1.6"/>
+      <text x="225" y="60" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">rescan resets here</text>
+      <text x="225" y="76" font-family="IBM Plex Mono,monospace" font-size="10" fill="#2f6fab" opacity=".8">accumulation never reaches the crossover</text>
+
+      <text x="480" y="378" font-family="IBM Plex Mono,monospace" font-size="11" fill="currentColor" opacity=".8" text-anchor="middle">measured on a real 31-pass weld: −11.54 mm² left alone · −1.37 mm² rescanning every 5th bead</text>
+    </svg>
+    <figcaption><b>Consistent error grows with N; random error grows with √N.</b> The small biased
+    error overtakes the large random one at pass 12.3 — so the rescan interval is chosen to stop
+    short of it. The shaded band is the region the process is ever allowed to occupy.</figcaption>
+  </figure>
+
+  <div class="key prose">
+    <span class="tag">Consequence for training</span>
+    <p>The model is trained by laying <strong>five beads in a row</strong>, each on its own previous
+    answer, and scoring three things at once: how big the mistakes are, whether they
+    <em>lean</em> one way, and how far off it is after all five. All three fall out of the same run
+    — the last two are numbers a normal trainer computes and discards.</p>
+  </div>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">05</span>One measurement, three settings</h2>
+    <p class="lede">These were not chosen independently and found to agree. One measurement fixes
+    all three, and that is the load-bearing fact of the architecture.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Setting</th><th class="n">Value</th><th>Why it is that and not something else</th></tr></thead>
+      <tbody>
+        <tr><td>Training depth <span class="mono">K</span></td><td class="n">5</td><td>no value in training past where you replan</td></tr>
+        <tr><td>Planning horizon <span class="mono">H</span></td><td class="n">5</td><td>no value in planning past where you rescan</td></tr>
+        <tr><td>Rescan interval</td><td class="n">~5</td><td>−11.54 mm² → −1.37 mm² rescanning every 5th bead</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">06</span>Inside the planner</h2>
+    <p class="lede">The planner has no learned parts. It is a sampler, a batched simulator, a
+    filter and a weighted average — run four times over. Every step is inspectable, which is the
+    whole reason it isn't a network.</p>
+    <p>It does not solve for the best plan analytically. It <strong>guesses a thousand plans,
+    simulates all of them at once, throws away the illegal ones, and moves its guessing toward
+    whatever survived best.</strong> Then repeats. That is the entire algorithm.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 4 — the planner as a tensor pipeline</p>
+    <svg viewBox="0 0 900 580" role="img" aria-label="The planner. A distribution over settings is sampled into 1024 candidate plans, illegal ones are masked, wire feed is derived from current, giving a bundle of legal plans. One measured groove profile, shared by all candidates, is rolled forward five steps through f and the reconstruction, with each step consuming that step's action from the bundle. This yields 1024 predicted futures, which are scored, the best ten percent selected, and the distribution moved toward them. After four rounds the first action only is committed.">
+      <defs>
+        <marker id="p4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+        <marker id="p4b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+        <marker id="p4g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3d7a5f"/></marker>
+        <marker id="p4h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c4622d"/></marker>
+      </defs>
+
+      <!-- ================= BAND 1 : build the candidate set ================= -->
+      <text x="30" y="16" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="currentColor" opacity=".45" letter-spacing="1.3">STAGE A — PROPOSE</text>
+
+      <rect x="30" y="24" width="180" height="76" rx="9" fill="#dce8f3" stroke="#2f6fab" stroke-width="2"/>
+      <text x="128" y="52" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#1c242e">the guess</text>
+      <text x="128" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3d4a58">a centre + spread for each</text>
+      <text x="128" y="84" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#3d4a58">of 5 passes × 4 knobs</text>
+
+      <rect x="252" y="24" width="164" height="76" rx="9" fill="var(--card-2)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="344" y="52" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="currentColor">draw 1024</text>
+      <text x="344" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">random around the centre</text>
+      <text x="344" y="86" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#2f6fab">SETTINGS, not profiles</text>
+
+      <rect x="458" y="24" width="164" height="76" rx="9" fill="#c4622d" stroke="#c4622d" stroke-width="1.6"/>
+      <text x="540" y="52" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#ffffff">delete illegal</text>
+      <text x="540" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#ffffff" opacity=".92">outside the machine box,</text>
+      <text x="540" y="84" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#ffffff" opacity=".92">or changing too fast</text>
+
+      <rect x="664" y="24" width="206" height="76" rx="9" fill="var(--card-2)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="767" y="52" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="currentColor">derive wire feed</text>
+      <text x="767" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">v_f = f(current) — locked,</text>
+      <text x="767" y="84" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">never chosen freely</text>
+
+      <line x1="210" y1="62" x2="248" y2="62" stroke="currentColor" stroke-width="1.6" marker-end="url(#p4)"/>
+      <line x1="416" y1="62" x2="454" y2="62" stroke="currentColor" stroke-width="1.6" marker-end="url(#p4)"/>
+      <line x1="622" y1="62" x2="660" y2="62" stroke="currentColor" stroke-width="1.6" marker-end="url(#p4)"/>
+
+      <!-- the bundle: stage A's product -->
+      <path d="M767,100 L767,120 L470,120 L470,138" fill="none" stroke="#2f6fab" stroke-width="1.8" marker-end="url(#p4b)"/>
+      <rect x="322" y="140" width="296" height="48" rx="9" fill="#dce8f3" stroke="#2f6fab" stroke-width="2"/>
+      <text x="470" y="161" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#1c242e">1024 legal plans</text>
+      <text x="470" y="179" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">[1024 plans, 5 passes, 4 knobs]</text>
+
+      <!-- ================= BAND 2 : simulate them all ================= -->
+      <text x="30" y="216" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="currentColor" opacity=".45" letter-spacing="1.3">STAGE B — SIMULATE ALL 1024 AT ONCE, 5 STEPS DEEP</text>
+      <rect x="24" y="224" width="852" height="152" rx="11" fill="#dce8f3" opacity=".3" stroke="#2f6fab" stroke-width="1.3"/>
+
+      <!-- the one shared measured profile -->
+      <rect x="40" y="254" width="132" height="92" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
+      <text x="106" y="278" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12" font-weight="600" fill="currentColor">the measured</text>
+      <text x="106" y="294" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12" font-weight="600" fill="currentColor">groove</text>
+      <text x="106" y="315" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#2f6fab" font-weight="600">ONE profile —</text>
+      <text x="106" y="329" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#2f6fab" font-weight="600">shared by all 1024</text>
+
+      <!-- f, drawn as a stack to show the batch -->
+      <rect x="234" y="264" width="90" height="72" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1" opacity=".4"/>
+      <rect x="228" y="270" width="90" height="72" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1" opacity=".65"/>
+      <rect x="222" y="276" width="90" height="72" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="2"/>
+      <text x="267" y="308" text-anchor="middle" font-family="Archivo,sans-serif" font-size="18" font-weight="700" fill="#2f6fab">f</text>
+      <text x="267" y="330" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#1c242e">×1024</text>
+
+      <!-- rebuild, also stacked -->
+      <rect x="396" y="264" width="106" height="72" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1" opacity=".4"/>
+      <rect x="390" y="270" width="106" height="72" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1" opacity=".65"/>
+      <rect x="384" y="276" width="106" height="72" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
+      <text x="437" y="300" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor">rebuild the</text>
+      <text x="437" y="314" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor">surface</text>
+      <text x="437" y="332" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#2f6fab">area enforced</text>
+
+      <line x1="172" y1="300" x2="216" y2="300" stroke="#2f6fab" stroke-width="1.8" marker-end="url(#p4b)"/>
+      <line x1="312" y1="312" x2="378" y2="312" stroke="#2f6fab" stroke-width="1.8" marker-end="url(#p4b)"/>
+      <text x="345" y="304" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#2f6fab">86 numbers</text>
+
+      <!-- the actual recursion: rebuild feeds back into f -->
+      <path d="M437,276 C437,238 267,238 267,270" fill="none" stroke="#2f6fab" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#p4b)"/>
+      <text x="352" y="246" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab">the new surface becomes the next input — 5 times</text>
+
+      <!-- actions enter f -->
+      <path d="M470,188 L470,214 L200,214 L200,290 L216,290" fill="none" stroke="#c4622d" stroke-width="1.7" marker-end="url(#p4h)"/>
+      <text x="204" y="208" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#c4622d">this step's settings, from the bundle</text>
+
+      <!-- futures out -->
+      <line x1="490" y1="312" x2="556" y2="312" stroke="#2f6fab" stroke-width="1.8" marker-end="url(#p4b)"/>
+      <text x="523" y="304" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#2f6fab">after step 5</text>
+
+      <rect x="570" y="254" width="290" height="92" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
+      <text x="715" y="280" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="currentColor">1024 predicted futures</text>
+      <text x="715" y="300" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">what the groove looks like after</text>
+      <text x="715" y="314" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">5 passes, for every candidate</text>
+      <text x="715" y="333" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">[1024, 5, 161]</text>
+
+      <!-- ================= BAND 3 : choose ================= -->
+      <text x="30" y="406" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="currentColor" opacity=".45" letter-spacing="1.3">STAGE C — CHOOSE</text>
+
+      <path d="M715,346 L715,394 L470,394 L470,414" fill="none" stroke="currentColor" stroke-width="1.7" marker-end="url(#p4)"/>
+
+      <rect x="322" y="416" width="296" height="70" rx="9" fill="var(--card-2)" stroke="currentColor" stroke-width="1.6"/>
+      <text x="470" y="441" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="currentColor">score all 1024</text>
+      <text x="470" y="459" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">how much groove is left unfilled ·</text>
+      <text x="470" y="473" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">how bumpy · how many passes · how odd the settings</text>
+
+      <line x1="322" y1="451" x2="280" y2="451" stroke="#3d7a5f" stroke-width="1.8" marker-end="url(#p4g)"/>
+      <rect x="94" y="416" width="182" height="70" rx="9" fill="var(--good-soft)" stroke="#3d7a5f" stroke-width="1.8"/>
+      <text x="185" y="441" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#3d7a5f">keep the best 102</text>
+      <text x="185" y="459" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">the top 10% —</text>
+      <text x="185" y="473" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".75">the other 922 are the measurement</text>
+
+      <!-- loop back, routed clear of every box -->
+      <path d="M94,451 L14,451 L14,62 L26,62" fill="none" stroke="#3d7a5f" stroke-width="2" marker-end="url(#p4g)"/>
+      <text x="22" y="270" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#3d7a5f" transform="rotate(-90 22 270)" text-anchor="middle">move the guess onto the survivors · repeat 4 times</text>
+
+      <!-- commit -->
+      <line x1="618" y1="451" x2="660" y2="451" stroke="#2f6fab" stroke-width="2" marker-end="url(#p4b)"/>
+      <rect x="664" y="416" width="206" height="70" rx="9" fill="#dce8f3" stroke="#2f6fab" stroke-width="2.4"/>
+      <text x="767" y="441" text-anchor="middle" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#2f6fab">weld pass 1 only</text>
+      <text x="767" y="459" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#1c242e">passes 2–5 are thrown away</text>
+      <text x="767" y="473" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#1c242e">— then rescan and start over</text>
+      <text x="767" y="404" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#2f6fab">after the 4th round</text>
+
+      <!-- cost -->
+      <line x1="24" y1="516" x2="876" y2="516" stroke="currentColor" stroke-width="1" opacity=".16"/>
+      <text x="24" y="538" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab" letter-spacing="1.1">COST OF ONE DECISION</text>
+      <text x="24" y="557" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="currentColor">1024 plans × 5 steps × 4 rounds = <tspan font-weight="600">20,480</tspan> calls to f  →  27 GFLOP  →  <tspan fill="#2f6fab" font-weight="600">single-digit milliseconds</tspan></text>
+      <text x="24" y="572" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="currentColor" opacity=".6">against a pass that takes ~2 minutes to weld and minutes more to cool</text>
+
+      <g class="bg"><circle cx="42" cy="36" r="11" fill="#2f6fab"/><text x="42" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">1</text></g>
+      <g class="bg"><circle cx="264" cy="36" r="11" fill="#2f6fab"/><text x="264" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">2</text></g>
+      <g class="bg"><circle cx="470" cy="36" r="11" fill="#c4622d" stroke="#ffffff" stroke-width="1.6"/><text x="470" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">3</text></g>
+      <g class="bg"><circle cx="676" cy="36" r="11" fill="#2f6fab"/><text x="676" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">4</text></g>
+      <g class="bg"><circle cx="334" cy="152" r="11" fill="#2f6fab"/><text x="334" y="156" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">5</text></g>
+      <g class="bg"><circle cx="52" cy="266" r="11" fill="#2f6fab"/><text x="52" y="270" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">6</text></g>
+      <g class="bg"><circle cx="234" cy="288" r="11" fill="#2f6fab"/><text x="234" y="292" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">7</text></g>
+      <g class="bg"><circle cx="396" cy="288" r="11" fill="#2f6fab"/><text x="396" y="292" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">8</text></g>
+      <g class="bg"><circle cx="582" cy="266" r="11" fill="#2f6fab"/><text x="582" y="270" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" fill="#fff">9</text></g>
+      <g class="bg"><circle cx="334" cy="428" r="11" fill="#2f6fab"/><text x="334" y="432" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#fff">10</text></g>
+      <g class="bg"><circle cx="106" cy="428" r="11" fill="#3d7a5f"/><text x="106" y="432" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#fff">11</text></g>
+      <g class="bg"><circle cx="676" cy="428" r="11" fill="#2f6fab"/><text x="676" y="432" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#fff">12</text></g>
+    </svg>
+    <figcaption><b>Read it in three stages.</b> <b>A · propose</b> — ① a rough guess (a centre and
+    spread per knob per pass) → ② draw 1024 random sets of SETTINGS from it, not profiles →
+    ③ delete the illegal ones outright → ④ derive wire feed from current → ⑤ a bundle of 1024
+    legal plans. <b>B · simulate</b> — ⑥ ONE measured groove, shared by every candidate → ⑦ f
+    predicts a bead → ⑧ rebuild it into a surface → that surface becomes the next input, five
+    times, with ③'s settings feeding in at each step (orange) → ⑨ 1024 predicted futures.
+    <b>C · choose</b> — ⑩ score them all → ⑪ keep the best 102 and move the guess onto them, four
+    rounds → ⑫ weld pass 1 and discard the rest.<br><br><b>The two easy things to misread.</b>
+    Only the settings are sampled — there is a single measured profile and 1024 ways to weld it.
+    And the stacked boxes are not decoration: all 1024 candidates go through f <em>in the same
+    batch</em>, which is why a thousand futures cost about the same wall-clock as one.</figcaption>
+  </figure>
+
+  <h4 class="sub">6.1 · The rollout, written out</h4>
+  <div class="prose">
+    <p>The same three lines drive training, planning and the controller's prediction. They are
+    identical in <em>form</em> — but <strong>not in frame</strong>, and that distinction turns out
+    to be a live problem rather than a footnote. Figure 5.</p>
+  </div>
+
+  <div class="eq"><span class="lbl">the rollout recursion · same FORM in training and planning, different FRAME</span><span class="c">given a measured starting surface and a sequence of actions</span>
+
+  ŝ<sub>k</sub>      = s<sub>k</sub><span class="hi">meas</span>                              <span class="c">← start from what was SEEN, not predicted</span>
+
+  <span class="hi">b̂</span><sub>k+h</sub>   = <span class="hi">f</span>( ŝ<sub>k+h</sub> , a<sub>k+h</sub> )                <span class="c">← 86 numbers describing one bead</span>
+
+  ŝ<sub>k+h+1</sub> = ŝ<sub>k+h</sub> + <span class="hi">R</span>( <span class="hi">b̂</span><sub>k+h</sub> )              <span class="c">← R rebuilds a profile from the 86</span>
+
+               for h = 0 … H−1,  H = 5</div>
+
+  <div class="prose">
+    <p>The middle line is the network. The third line is the one that matters for correctness:
+    <strong>R is not a neural decoder.</strong> It is a fixed, deterministic reconstruction that
+    <em>enforces</em> the area the model predicted, so no amount of model error can create or
+    destroy metal.</p>
+  </div>
+
+  <div class="eq"><span class="lbl">R · the reconstruction, in three stages that would otherwise fight</span>  1. <span class="c">scale</span>    multiply the 81 heights so their integral equals the predicted area A
+  2. <span class="c">shape</span>    clamped cubic spline through the scaled heights,
+              end slopes pinned to tan θ<sub>l</sub> and tan θ<sub>r</sub>          <span class="c">← the toe angles are boundary conditions</span>
+  3. <span class="c">correct</span>  add c · sin²( π (x − x<sub>l</sub>) / (x<sub>r</sub> − x<sub>l</sub>) )
+              choosing c to restore the area exactly            <span class="c">← this bump is 0 in value AND slope
+                                                                   at both toes, so stage 2 survives it</span></div>
+
+
+  <figure>
+    <p class="fignum">Figure 5 — the same recursion, two different frames</p>
+    <svg viewBox="0 0 900 470" role="img" aria-label="When planning, one measured groove is rolled forward and the window can stay wherever the planner chooses, so the frame never moves. When training on recorded passes, each record's window was centred on that pass's own torch; the torch moves up to 18 millimetres between passes while the window is only 16 millimetres wide, so on 7.9 percent of pass pairs the two windows are completely disjoint and cannot be chained.">
+      <defs>
+        <marker id="g5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+        <marker id="g5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c4622d"/></marker>
+        <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#c4622d" stroke-width="2" opacity=".55"/>
+        </pattern>
+      </defs>
+
+      <!-- PLANNING -->
+      <text x="24" y="20" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab" letter-spacing="1.3">PLANNING — fine</text>
+      <rect x="24" y="28" width="852" height="150" rx="10" fill="#dce8f3" opacity=".30" stroke="#2f6fab" stroke-width="1.3"/>
+
+      <text x="44" y="52" font-size="11.5" fill="currentColor">ONE measured groove. You choose where the torch goes, so the window stays wherever you want it.</text>
+
+      <line x1="60" y1="120" x2="840" y2="120" stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+      <text x="848" y="124" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="currentColor" opacity=".5">x</text>
+      <rect x="220" y="76" width="300" height="60" rx="5" fill="#2f6fab" opacity=".18" stroke="#2f6fab" stroke-width="1.8"/>
+      <text x="370" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab">the 16 mm window — same frame for all 5 steps</text>
+      <g font-family="IBM Plex Mono,monospace" font-size="10" fill="#2f6fab">
+        <text x="252" y="152">step 1</text><text x="330" y="152">2</text><text x="392" y="152">3</text>
+        <text x="452" y="152">4</text><text x="500" y="152">5</text>
+      </g>
+      <path d="M258,136 L258,144 M336,136 L336,144 M398,136 L398,144 M458,136 L458,144 M506,136 L506,144" stroke="#2f6fab" stroke-width="1.4"/>
+      <text x="560" y="106" font-size="11" fill="#2f6fab" font-weight="600">nothing moves under you ✓</text>
+
+      <!-- TRAINING -->
+      <text x="24" y="216" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#c4622d" letter-spacing="1.3">TRAINING — the problem</text>
+      <rect x="24" y="224" width="852" height="196" rx="10" fill="var(--hot-soft)" opacity=".55" stroke="#c4622d" stroke-width="1.3"/>
+
+      <text x="44" y="248" font-size="11.5" fill="currentColor">RECORDED passes. Each window sat on that pass's own torch — and the torch moved between them.</text>
+
+      <line x1="60" y1="330" x2="840" y2="330" stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+
+      <!-- pass k window -->
+      <rect x="120" y="286" width="260" height="58" rx="5" fill="#2f6fab" opacity=".18" stroke="#2f6fab" stroke-width="1.8"/>
+      <text x="250" y="278" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab">pass k · 16 mm</text>
+      <path d="M250,344 L250,356" stroke="#2f6fab" stroke-width="1.6"/>
+      <text x="250" y="370" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#2f6fab">its torch</text>
+
+      <!-- the gap -->
+      <rect x="380" y="286" width="52" height="58" fill="url(#hatch)" stroke="#c4622d" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="406" y="278" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#c4622d">GAP</text>
+      <text x="406" y="370" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#c4622d">never recorded</text>
+
+      <!-- pass k+1 window -->
+      <rect x="432" y="286" width="260" height="58" rx="5" fill="#2f6fab" opacity=".18" stroke="#2f6fab" stroke-width="1.8"/>
+      <text x="562" y="278" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#2f6fab">pass k+1 · 16 mm</text>
+      <path d="M562,344 L562,356" stroke="#2f6fab" stroke-width="1.6"/>
+      <text x="562" y="370" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#2f6fab">its torch</text>
+
+      <!-- the torch jump -->
+      <line x1="250" y1="262" x2="562" y2="262" stroke="#c4622d" stroke-width="1.5" marker-start="url(#g5b)" marker-end="url(#g5b)"/>
+      <text x="406" y="256" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="#c4622d">the torch moved 18 mm (p95) — wider than the window</text>
+
+      <text x="712" y="306" font-size="11" fill="#c4622d" font-weight="600">so s + R(bead)</text>
+      <text x="712" y="322" font-size="11" fill="#c4622d" font-weight="600">has nothing to add to</text>
+      <text x="712" y="340" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".7">on 7.9% of pass pairs</text>
+
+      <!-- measured distribution strip -->
+      <line x1="60" y1="398" x2="840" y2="398" stroke="currentColor" stroke-width="1" opacity=".2"/>
+      <text x="60" y="392" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="currentColor" opacity=".7">measured over 5,419 consecutive pass pairs:</text>
+      <g font-family="IBM Plex Mono,monospace" font-size="9.5">
+        <text x="60" y="414" fill="#c4622d" font-weight="600">7.9% fully disjoint</text>
+        <text x="230" y="414" fill="currentColor" opacity=".75">17.5% under ¼ overlap</text>
+        <text x="420" y="414" fill="currentColor" opacity=".75">38.4% under ½</text>
+        <text x="560" y="414" fill="#3d7a5f" font-weight="600">median 0.60 overlap</text>
+      </g>
+
+      <line x1="24" y1="440" x2="876" y2="440" stroke="currentColor" stroke-width="1" opacity=".16"/>
+      <text x="24" y="460" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor">UNRESOLVED · fix in absolute coordinates, or train only on overlapping pairs, or widen the window and regenerate</text>
+    </svg>
+    <figcaption><b>Planning is safe; training is not.</b> When planning you start from one
+    measured groove and <em>choose</em> the torch path, so the frame never shifts. When training
+    you are stitching together <em>recorded</em> passes, each window fixed to wherever that
+    pass's torch happened to be — and the torch moves up to 18 mm between passes while the window
+    is only 16 mm wide.<br><br>It is the two-photographs problem: shots taken 18 m apart, each
+    covering 16 m of road, cannot be stitched because a strip in the middle was never
+    photographed. <b>This is currently the top risk in the design</b> — it decides whether the
+    5-step rollout loss is implementable as written.</figcaption>
+  </figure>
+
+  <h4 class="sub">6.2 · What the planner is actually minimising</h4>
+
+  <div class="eq"><span class="lbl">the objective</span>  minimise over a<sub>k</sub> … a<sub>k+H−1</sub>
+
+    J  =  Σ<sub>h</sub> [ w<sub>fill</sub> · <span class="hi">D</span>(ŝ<sub>k+h+1</sub>)  +  w<sub>flat</sub> · <span class="hi">S</span>(ŝ<sub>k+h+1</sub>) ]
+          +  w<sub>n</sub> · H
+          +  w<sub>dev</sub> · Σ<sub>h</sub> ‖ a<sub>h</sub> − a<sub>nominal</sub> ‖²          <span class="c">← keeps the search inside where f was trained</span>
+
+  where
+    <span class="hi">D</span>(s) = ∫ max( 0 , g(x) − s(x) ) dx        <span class="c">deficit below the target fill line g</span>
+    <span class="hi">S</span>(s) = ∫ ( ∂²s/∂x² )² dx                <span class="c">roughness — a bumpy layer ruins the next one</span></div>
+
+  <div class="eq"><span class="lbl">subject to — these are MASKS, evaluated before scoring</span>  <span class="hot">θ<sub>l</sub> , θ<sub>r</sub>  &lt;  90°</span>                    <span class="c">an overhanging toe traps a void under the next pass</span>
+  <span class="hot">no re-entrancy</span>                     <span class="c">the surface must stay a function of x</span>
+  <span class="hot">(I, U, v<sub>t</sub>) ∈ qualified box</span>        <span class="c">the welding procedure's envelope</span>
+  <span class="hot">v<sub>f</sub> = κ · I / A<sub>wire</sub></span>                 <span class="c">DERIVED, never free — burn-off coupling</span>
+  <span class="hot">‖ a<sub>h</sub> − a<sub>h−1</sub> ‖ ≤ Δ<sub>max</sub></span>              <span class="c">the pool is 26 mm long; it cannot follow faster</span></div>
+
+  <div class="key warn prose">
+    <span class="tag">Why masks and not penalties</span>
+    <p>A soft penalty can always be outweighed. If a 92° toe angle merely <em>costs</em> something,
+    a plan that fills the groove beautifully will buy its way past it — and you will have optimised
+    your way into a lack-of-fusion defect. <strong>Feasibility is not a preference.</strong></p>
+  </div>
+
+  <h4 class="sub">6.3 · How the search moves</h4>
+  <div class="prose">
+    <p>Cross-entropy method: keep a rough guess, sample around it, keep what worked, move the guess.
+    No gradients — which matters, because the constraints are hard rejections and the cost surface
+    over torch placement is multi-modal (a bead can go left or right of a ridge, and a gradient
+    picks neither).</p>
+  </div>
+
+  <div class="eq"><span class="lbl">CEM · repeat 4 times, then commit</span>  <span class="c">state:</span> μ ∈ ℝ<sup>H×4</sup>, σ ∈ ℝ<sup>H×4</sup>      <span class="c">a mean and spread per pass, per parameter</span>
+
+  1. sample   a<sup>(i)</sup> ~ 𝒩( μ , diag σ² )        i = 1 … N,  N = 1024
+  2. mask     drop every a<sup>(i)</sup> violating a hard constraint
+  3. roll     ŝ<sup>(i)</sup> ← the recursion in 6.1, all i in one batch
+  4. score    J<sup>(i)</sup> ← the objective in 6.2
+  5. elite    <span class="gd">E</span> ← the best ρN by J,  ρ = 0.1        <span class="c">~102 survivors</span>
+  6. update   μ ← (1−α) μ + α · mean<sub><span class="gd">E</span></sub>(a)
+              σ ← (1−α) σ + α · std<sub><span class="gd">E</span></sub>(a)        α = 0.7
+
+  <span class="hi">commit  a<sub>k</sub> = μ<sub>0</sub>  — the first pass only</span>
+          <span class="c">then weld, rescan, and start again from the new measurement</span></div>
+
+  <div class="shapes">
+    <div class="shape"><b>actions</b>[1024, 5, 4]<br><span style="opacity:.6">plans × passes × knobs</span></div>
+    <div class="shape"><b>predicted beads</b>[1024, 5, 86]<br><span style="opacity:.6">f's output</span></div>
+    <div class="shape"><b>predicted surfaces</b>[1024, 5, 161]<br><span style="opacity:.6">after reconstruction</span></div>
+    <div class="shape"><b>costs</b>[1024]<br><span style="opacity:.6">one number per plan</span></div>
+  </div>
+
+  <h4 class="sub">6.4 · Where the 5 comes from, arithmetically</h4>
+  <div class="prose">
+    <p>Section 05 gave the number. Here is the algebra behind it, because it is three lines and it
+    is the only place in the design where a horizon is <em>derived</em> rather than chosen.</p>
+  </div>
+
+  <div class="eq"><span class="lbl">why the horizon is finite</span>  over H passes, per-pass error e has mean μ and standard deviation σ
+
+    consistent part   Σ e<sub>h</sub>  ≈  <span class="hot">H · μ</span>          <span class="c">adds up — every pass leans the same way</span>
+    random part       sd( Σ e<sub>h</sub> )  =  <span class="hi">√H · σ</span>     <span class="c">partially cancels</span>
+
+  they are equal when   H · μ = √H · σ   ⇒   <span class="hi">H* = ( σ / μ )²</span>
+
+  measured on a real 31-pass weld:  <span class="hi">H* = 12.3</span>   ⇒   σ/μ = 3.51
+    i.e. a 0.1 mm/pass bias is as damaging by pass 12 as 0.351 mm/pass of noise
+
+  <span class="gd">rescan before H* and the consistent part never gets to win</span>
+    → K = H = rescan interval = 5,  comfortably short of 12.3</div>
+
+  <h4 class="sub">6.5 · What the guess actually is</h4>
+  <div class="prose">
+    <p>Stage A says &ldquo;a centre + spread for each of 5 passes &times; 4 knobs&rdquo;. That is a
+    <strong>Gaussian</strong>, and it is worth being exact, because it is twenty numbers and twenty
+    spreads &mdash; nothing more.</p>
+    <p>Five passes &times; four knobs is <strong>20 dimensions</strong>. The distribution carries 20
+    means and 20 standard deviations, and <strong>no correlations between them</strong>. It is
+    <em>diagonal</em>: each knob is drawn independently of every other.</p>
+    <ul>
+      <li>The <strong>means</strong> start from the existing placement heuristic &mdash; left, right,
+      centre, climbing as the groove fills &mdash; because starting from real practice beats
+      starting from nothing.</li>
+      <li>The <strong>spreads</strong> come from the welding procedure&rsquo;s own latitude, set so
+      &plusmn;2&sigma; spans what the procedure permits. <strong>The search box is the training
+      box</strong>: no plan can wander somewhere <span class="mono">f</span> has never seen.</li>
+      <li><strong>Diagonal rather than full</strong>, for two reasons. A full 20&times;20 covariance
+      is 210 numbers estimated from about 102 survivors &mdash; badly under-determined. And
+      consecutive passes were measured to be independent, so there is no pass-to-pass correlation
+      to capture anyway.</li>
+    </ul>
+  </div>
+
+  <div class="eq"><span class="lbl">the whole loop</span>  q(a) = Normal( &mu; , diag(&sigma;&sup2;) )        20 means, 20 spreads
+
+    draw 1024 &rarr; score each &rarr; keep the best 10% &rarr; refit &mu; and &sigma; to those
+    &mu; &larr; (1&minus;&alpha;)&middot;&mu; + &alpha;&middot;mean(elites)     <span class="c">&alpha; = 0.7</span>
+    &sigma; &larr; (1&minus;&alpha;)&middot;&sigma; + &alpha;&middot;sd(elites)
+
+  <span class="gd">repeat 4 rounds, then commit the first action only</span></div>
+
+  <h4 class="sub">6.6 · Measured: the budget split is the defect, not the algorithm</h4>
+  <div class="prose">
+    <p>A literature review and an ablation, run 2026&#8209;09&#8209;12, changed what this section
+    recommends. Three findings, in increasing order of how much they matter.</p>
+    <p><strong>These algorithms are one family, not rivals.</strong> The Information-Geometric
+    Optimization framework shows CEM, CMA&#8209;ES, natural evolution strategies and estimation-of-
+    distribution algorithms are the same flow under different <em>selection schemes</em> &mdash; a
+    weight as a function of rank. CEM is recovered exactly by a hard cut at the elite fraction.
+    CMA&#8209;ES&rsquo;s default weights are <em>already</em> a soft weighting over ranks, which
+    matters here: reading ranks rather than values makes the search invariant to any monotone
+    distortion of the objective, and a biased <span class="mono">f</span> is exactly such a
+    distortion.</p>
+    <p><strong>A diagonal cannot align to a rotated valley.</strong> And this valley is rotated, by
+    construction: deposited area is <span class="mono">&eta;&middot;k&middot;I / v_t</span>, so
+    current and travel speed matter mostly through their <em>ratio</em>. That is a diagonal
+    direction in the box the sampler draws from.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 4b &mdash; why an axis-aligned guess wastes most of its samples</p>
+    <svg viewBox="0 0 900 250" role="img" aria-label="Two panels over the same tilted valley of good plans. On the left, a diagonal Gaussian samples an axis-aligned box, so most samples differ only along the direction that does not change the result. On the right, a full covariance draws a tilted ellipse aligned to the valley, so nearly every sample is informative.">
+      <defs>
+        <marker id="g6a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+      </defs>
+
+      <text x="30" y="18" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="currentColor" opacity=".45" letter-spacing="1.3">THE SAME LANDSCAPE, TWO WAYS OF SEARCHING IT</text>
+
+      <!-- ---------- left: diagonal ---------- -->
+      <g transform="translate(0,0)">
+        <ellipse cx="215" cy="130" rx="122" ry="26" fill="#c4622d" opacity=".13" transform="rotate(-33 215 130)"/>
+        <ellipse cx="215" cy="130" rx="80"  ry="16" fill="#c4622d" opacity=".20" transform="rotate(-33 215 130)"/>
+        <ellipse cx="215" cy="130" rx="38"  ry="8"  fill="#c4622d" opacity=".30" transform="rotate(-33 215 130)"/>
+        <rect x="140" y="72" width="150" height="116" rx="4" fill="#2f6fab" opacity=".10" stroke="#2f6fab" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="215" y="212" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#2f6fab">diagonal &mdash; what we sample now</text>
+        <text x="215" y="230" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".7">an axis-aligned box over a tilted valley</text>
+        <text x="215" y="58" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#c4622d" font-weight="600">the good plans lie along here</text>
+      </g>
+
+      <line x1="378" y1="130" x2="452" y2="130" stroke="currentColor" stroke-width="1.6" marker-end="url(#g6a)"/>
+      <text x="415" y="120" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="currentColor" opacity=".6">learn the tilt</text>
+
+      <!-- ---------- right: full covariance ---------- -->
+      <g transform="translate(470,0)">
+        <ellipse cx="215" cy="130" rx="122" ry="26" fill="#c4622d" opacity=".13" transform="rotate(-33 215 130)"/>
+        <ellipse cx="215" cy="130" rx="80"  ry="16" fill="#c4622d" opacity=".20" transform="rotate(-33 215 130)"/>
+        <ellipse cx="215" cy="130" rx="38"  ry="8"  fill="#c4622d" opacity=".30" transform="rotate(-33 215 130)"/>
+        <ellipse cx="215" cy="130" rx="126" ry="30" fill="#3d7a5f" opacity=".12" stroke="#3d7a5f" stroke-width="2" stroke-dasharray="6 4" transform="rotate(-33 215 130)"/>
+        <text x="215" y="212" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12.5" font-weight="600" fill="#3d7a5f">full covariance &mdash; aligned</text>
+        <text x="215" y="230" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="currentColor" opacity=".7">nearly every sample is informative</text>
+      </g>
+    </svg>
+  </figure>
+
+  <div class="prose">
+    <p><strong>But the biggest defect is not the shape of the distribution &mdash; it is how the
+    budget is spent.</strong> Adapting a covariance needs <em>iterations</em>, not samples. Four
+    updates cannot learn a 20&times;20 covariance however many samples each one sees. Measured on a
+    randomly rotated ill-conditioned valley, holding the total budget fixed at 4,096 evaluations:</p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>population &times; rounds</th><th>survivors per round</th><th>result, relative to today</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1024 &times; 4</td><td class="n">256</td><td class="n">1.000 &mdash; the current design</td></tr>
+        <tr><td class="mono">256 &times; 16</td><td class="n">64</td><td class="n">0.250</td></tr>
+        <tr><td class="mono">64 &times; 64</td><td class="n">16</td><td class="n yes">0.100 &mdash; 10&times; better, same cost</td></tr>
+        <tr><td class="mono">24 &times; 170</td><td class="n">6</td><td class="n">0.271</td></tr>
+        <tr><td class="mono">12 &times; 341</td><td class="n">3</td><td class="n no">0.760 &mdash; worse again</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="key warn prose">
+    <span class="tag">The correction</span>
+    <p>There is an <strong>interior optimum</strong>, not a monotone trend: 12 &times; 341 is
+    <em>worse</em> than the current design, because three survivors cannot estimate twenty spreads.
+    So the fix is not &ldquo;more rounds&rdquo; &mdash; it is <strong>balance</strong>, and the
+    largest single improvement available to the planner costs nothing and changes no algorithm.
+    A hybrid combining CMA&#8209;ES, MPPI and mixture models was investigated and
+    <strong>rejected</strong>: two of the proposed combinations turn out to be redundant with
+    CMA&#8209;ES, one actively forfeits the invariance that protects against a biased
+    <span class="mono">f</span>, and restart schemes need about 2&times;10<sup>7</sup> evaluations
+    at this dimension against a budget of 4,000.</p>
+  </div>
+
+  </section>
+
+<hr>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">07</span>Where the physics actually lives</h2>
+    <p class="lede">This is not a physics-informed network in the usual sense — there is no
+    equation in the loss, and the brief rules that approach out. The physics is in four other
+    places instead, and they are not equally strong.</p>
+    <p><strong>The rule:</strong> put each constraint at the lowest level where it can be made
+    <em>exact</em>. If you can calculate it, calculate it. If you can check it, check it and
+    reject. Only put it in a loss when you can do neither.</p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Strength</th><th>Mechanism</th><th>Examples</th><th>Holds when?</th></tr></thead>
+      <tbody>
+        <tr><td><b>1 · structural</b></td><td>in the data path — cannot be violated</td>
+            <td>area enforced by the rebuild · wire feed derived from current · toe angles as boundary conditions</td>
+            <td class="yes">always, no training needed</td></tr>
+        <tr><td><b>2 · the labels</b></td><td>the answers came out of a physics solver</td>
+            <td>surface-energy minimisation · the thermal field</td>
+            <td class="dim">on the training distribution only</td></tr>
+        <tr><td><b>3 · masks</b></td><td>hard rejection in the search</td>
+            <td>edge angle &lt; 90° · the machine envelope</td>
+            <td class="yes">always — cannot be outbid</td></tr>
+        <tr><td><b>4 · hyperparameters</b></td><td>physics fixes the architecture's shape</td>
+            <td>K = H = rescan = 5 · 25 mm stations · the search spread</td>
+            <td class="yes">by construction</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>Level 4 is the easiest to overlook and arguably the deepest: <strong>none of those numbers
+    were chosen.</strong> They came out of measurements.</p>
+  </div>
+
+  <h4 class="sub">7.1 · One change: calculate the metal, don't predict it</h4>
+  <div class="prose">
+    <p>The rebuild currently scales the bead so its area matches <strong>what the model
+    predicted</strong>. That is self-consistency, not mass conservation — predict the wrong area
+    and the rebuild faithfully enforces the wrong area.</p>
+    <p>But the metal delivered is <em>arithmetic</em>: wire fed in, divided by travel speed. The
+    planner already knows both — it chose them. The code that computes it describes itself as
+    <em>"the one hard invariant in the stack."</em></p>
+  </div>
+  <div class="key ok prose">
+    <span class="tag">The fix, and a free bonus</span>
+    <p>Override the predicted area with the computed one before rebuilding. Mass conservation
+    becomes exact against the wire, and the model has one fewer thing to get wrong — it only ever
+    has to predict <em>shape</em>. <strong>And keep the area output anyway:</strong>
+    predicted-versus-calculated then becomes a free self-test that fires on every single
+    inference, rather than a surprise at the end of a rollout.</p>
+  </div>
+
+  <h4 class="sub">7.2 · Three costs the planner should have and doesn't</h4>
+  <div class="prose">
+    <p>All three are already computed for every pass. None is used.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Term</th><th>Why it belongs in the plan's score</th></tr></thead>
+      <tbody>
+        <tr><td><b>cumulative heat</b></td><td><b>the important one.</b> More heat → more warping → more for the controller to absorb. Nothing currently makes the planner prefer a cooler plan, so it freely creates the disturbance the controller then has to mop up.</td></tr>
+        <tr><td><b>dilution</b></td><td>too little and the bead doesn't properly fuse to the parent metal</td></tr>
+        <tr><td><b>humping index</b></td><td>a known high-speed instability</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub">7.3 · Three things deliberately refused</h4>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Not adding</th><th>Why not</th></tr></thead>
+      <tbody>
+        <tr><td>a physics-equation term in the loss</td>
+            <td>our answers <b>already came out of a physics solver</b> — 6,163 of them. That approach exists for when you have no labels. We have labels.</td></tr>
+        <tr><td class="no">"the surface must go up"</td>
+            <td class="no"><b>it is false.</b> The arc remelts the neighbouring bead, so the surface genuinely goes down at the edges. This is the constraint a careful engineer adds first, and it would break the model.</td></tr>
+        <tr><td>an angle-consistency penalty</td>
+            <td>the three angle definitions are separate solver outputs; their relations are already in the data</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub">7.4 · And a correction to this document</h4>
+  <div class="prose">
+    <p>§6.2 previously listed a limit on how much settings may change <em>between</em> passes,
+    justified by the 26 mm pool. <strong>That was wrong.</strong> Between passes the metal has
+    frozen and there is a cooling wait, so consecutive passes may differ freely — root, fill and
+    cap passes routinely do.</p>
+    <p>Measured in our own data: consecutive passes jump by <strong>1.4× the full legal latitude
+    on current, and 3.3× on travel speed.</strong> The model was trained with no such limit, so a
+    planner constraint enforcing one would contradict its own training data.</p>
+    <p>The limit is real, but it belongs to the <em>within-pass</em> adjustment of §9.1 — the fast
+    loop — where the pool genuinely does average commands over its own length.</p>
+  </div>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">08</span>The thing the physics won't allow</h2>
+    <p class="lede">The obvious design is a controller that watches the bead form and corrects on
+    the fly. It cannot be built, and the reason is a number.</p>
+    <p>The arc does not leave solid metal behind it. It leaves a <strong>pool of liquid about 26 mm
+    long</strong>, almost all of it <em>behind</em> the torch. The metal just laid is still moving,
+    still settling, still deciding its shape.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 6 — where the metal is solid, liquid, and not yet welded</p>
+    <svg viewBox="0 0 900 300" role="img" aria-label="Side view of a weld. Behind the torch, 23 millimetres of molten pool; ahead of it, only 3 millimetres. Metal further back is frozen and measurable but unfixable. A scanner 50 millimetres ahead sees solid unwelded groove and gives 9 to 14 seconds of warning.">
+      <defs>
+        <marker id="f4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+        <marker id="f4h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c4622d"/></marker>
+        <marker id="f4b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+        <linearGradient id="g-pool" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#c4622d" stop-opacity=".14"/><stop offset="70%" stop-color="#c4622d" stop-opacity=".42"/><stop offset="100%" stop-color="#c4622d" stop-opacity=".6"/>
+        </linearGradient>
+      </defs>
+
+      <text x="34" y="30" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".65">travel direction</text>
+      <line x1="150" y1="26" x2="228" y2="26" stroke="currentColor" stroke-width="1.5" marker-end="url(#f4a)"/>
+
+      <!-- plate -->
+      <rect x="34" y="150" width="832" height="34" fill="currentColor" opacity=".07"/>
+      <line x1="34" y1="184" x2="866" y2="184" stroke="currentColor" stroke-width="1.2" opacity=".3"/>
+
+      <!-- frozen bead -->
+      <path d="M34,150 L340,150 L340,126 Q190,116 34,126 Z" fill="currentColor" opacity=".26"/>
+      <text x="187" y="206" text-anchor="middle" font-size="12" fill="currentColor">frozen · measurable</text>
+      <text x="187" y="224" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-style="italic" fill="currentColor" opacity=".7">and unfixable</text>
+
+      <!-- liquid pool -->
+      <path d="M340,150 L622,150 L622,120 Q480,104 340,126 Z" fill="url(#g-pool)"/>
+      <path d="M340,126 Q480,104 622,120" fill="none" stroke="#c4622d" stroke-width="2.2"/>
+      <text x="481" y="206" text-anchor="middle" font-size="12" font-weight="600" fill="#c4622d">LIQUID — still moving</text>
+      <text x="481" y="224" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#c4622d" opacity=".85">averages any command over its own length</text>
+
+      <!-- unwelded -->
+      <path d="M622,150 L866,150 L866,138 L622,138 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="5 3" opacity=".6"/>
+      <text x="744" y="206" text-anchor="middle" font-size="12" fill="currentColor">solid · not yet welded</text>
+      <text x="744" y="224" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7">already its final shape</text>
+
+      <!-- torch -->
+      <g>
+        <line x1="596" y1="46" x2="596" y2="108" stroke="currentColor" stroke-width="4"/>
+        <path d="M596,108 L586,122 L606,122 Z" fill="#2f6fab"/>
+        <circle cx="596" cy="126" r="7" fill="#c4622d" opacity=".55"/>
+        <text x="596" y="38" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="currentColor">torch</text>
+      </g>
+
+      <!-- spans -->
+      <line x1="340" y1="252" x2="596" y2="252" stroke="#c4622d" stroke-width="1.3" marker-start="url(#f4h)" marker-end="url(#f4h)"/>
+      <text x="468" y="268" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="#c4622d">23 mm BEHIND</text>
+      <line x1="596" y1="252" x2="622" y2="252" stroke="#c4622d" stroke-width="1.3"/>
+      <text x="660" y="268" font-family="IBM Plex Mono,monospace" font-size="11" fill="#c4622d" opacity=".85">3 mm ahead</text>
+      <text x="468" y="288" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="currentColor" opacity=".7">≈ 6 seconds of dead time before it can be measured</text>
+
+      <!-- scanner -->
+      <line x1="812" y1="62" x2="812" y2="132" stroke="#2f6fab" stroke-width="1.8" stroke-dasharray="4 3"/>
+      <circle cx="812" cy="56" r="6" fill="#2f6fab"/>
+      <text x="812" y="42" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">scanner</text>
+      <line x1="622" y1="94" x2="804" y2="94" stroke="#2f6fab" stroke-width="1.3" marker-start="url(#f4b)" marker-end="url(#f4b)"/>
+      <text x="713" y="86" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab">9–14 s of warning</text>
+    </svg>
+    <figcaption><b>The pool is the constraint.</b> By the time metal has frozen enough to measure
+    honestly, the torch is 26 mm past it. That is <b>6 seconds</b> of dead time on a process that
+    accumulates rather than settles — 16× worse than the fastest arc loop. A scanner
+    <em>ahead</em> of the torch, though, looks at solid groove and buys 9–14 seconds.</figcaption>
+  </figure>
+
+  <div class="key warn prose">
+    <span class="tag">What this rules in and out</span>
+    <p><strong>Correcting the groove ahead of you: yes.</strong> It is solid, already its final
+    shape, and you see it seconds early. <strong>Correcting the bead behind you: no.</strong> Not
+    merely late or imprecise — <em>impossible</em>, because the pool averages any command over its
+    own 26 mm. Corrections happen <em>between</em> passes or <em>ahead</em> of the torch, never on
+    the metal just deposited.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">09</span>How the controller works</h2>
+    <p class="lede">Here is the part that surprises people: the controller never computes a
+    correction. It plans again from what it sees.</p>
+    <p>Thermal distortion is the classic worry — the plate warps as it heats, so the groove you are
+    filling is not the groove in the drawing. <strong>Nothing in this system predicts that, and
+    nothing needs to.</strong> The warping has already happened by the time you scan, so it is
+    baked into the measurement. Plan from the measurement and it is handled.</p>
+  </div>
+
+  <h4 class="sub">9.1 · Two timescales, two different jobs</h4>
+  <div class="prose">
+    <p>The controller runs at two rates, and they do genuinely different things. Confusing them is
+    the most common way this kind of design goes wrong.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 7 — the fast loop looks forward, the slow loop looks back</p>
+    <svg viewBox="0 0 900 300" role="img" aria-label="Two nested loops. The fast loop runs within a pass every 25 millimetres, adjusting current and speed from a forward-looking scan before the arc arrives. The slow loop runs between passes, rescanning the finished bead and replanning.">
+      <defs>
+        <marker id="f5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6fab"/></marker>
+        <marker id="f5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+      </defs>
+
+      <rect x="24" y="24" width="852" height="118" rx="11" fill="#dce8f3" opacity=".45" stroke="#2f6fab" stroke-width="1.4"/>
+      <text x="46" y="50" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab" letter-spacing="1.2">FAST · WITHIN ONE PASS · EVERY ~25 mm</text>
+
+      <g font-family="Archivo,sans-serif" font-size="12.5" font-weight="600">
+        <rect x="52" y="62" width="164" height="58" rx="8" fill="var(--card)" stroke="#2f6fab" stroke-width="1.4"/>
+        <text x="134" y="86" text-anchor="middle" fill="currentColor">scan ahead</text>
+        <text x="134" y="104" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">the groove, not the bead</text>
+
+        <rect x="272" y="62" width="164" height="58" rx="8" fill="var(--card)" stroke="#2f6fab" stroke-width="1.4"/>
+        <text x="354" y="86" text-anchor="middle" fill="currentColor">is it as expected?</text>
+        <text x="354" y="104" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">gap wider? shallower?</text>
+
+        <rect x="492" y="62" width="164" height="58" rx="8" fill="var(--card)" stroke="#2f6fab" stroke-width="1.4"/>
+        <text x="574" y="86" text-anchor="middle" fill="currentColor">adjust this station</text>
+        <text x="574" y="104" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">current · travel speed</text>
+
+        <rect x="712" y="62" width="140" height="58" rx="8" fill="var(--card)" stroke="#2f6fab" stroke-width="1.4"/>
+        <text x="782" y="86" text-anchor="middle" fill="currentColor">arrive</text>
+        <text x="782" y="104" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">9–14 s later</text>
+      </g>
+      <g stroke="#2f6fab" stroke-width="1.5">
+        <line x1="218" y1="91" x2="268" y2="91" marker-end="url(#f5a)"/>
+        <line x1="438" y1="91" x2="488" y2="91" marker-end="url(#f5a)"/>
+        <line x1="658" y1="91" x2="708" y2="91" marker-end="url(#f5a)"/>
+      </g>
+
+      <rect x="24" y="160" width="852" height="118" rx="11" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/>
+      <text x="46" y="186" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="currentColor" opacity=".7" letter-spacing="1.2">SLOW · BETWEEN PASSES · EVERY 1–5 BEADS</text>
+
+      <g font-family="Archivo,sans-serif" font-size="12.5" font-weight="600">
+        <rect x="52" y="198" width="164" height="58" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.4"/>
+        <text x="134" y="222" text-anchor="middle" fill="currentColor">rescan behind</text>
+        <text x="134" y="240" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">the finished bead</text>
+
+        <rect x="272" y="198" width="164" height="58" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.4"/>
+        <text x="354" y="222" text-anchor="middle" fill="currentColor">subtract prediction</text>
+        <text x="354" y="240" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">that difference is the signal</text>
+
+        <rect x="492" y="198" width="164" height="58" rx="8" fill="var(--card)" stroke="currentColor" stroke-width="1.4"/>
+        <text x="574" y="222" text-anchor="middle" fill="currentColor">classify it</text>
+        <text x="574" y="240" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="currentColor" opacity=".7">warp · lean · defect</text>
+
+        <rect x="712" y="198" width="140" height="58" rx="8" fill="#dce8f3" stroke="#2f6fab" stroke-width="1.8"/>
+        <text x="782" y="222" text-anchor="middle" fill="#2f6fab">replan</text>
+        <text x="782" y="240" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="400" fill="#2f6fab">from what was SEEN</text>
+      </g>
+      <g stroke="currentColor" stroke-width="1.5">
+        <line x1="218" y1="227" x2="268" y2="227" marker-end="url(#f5b)"/>
+        <line x1="438" y1="227" x2="488" y2="227" marker-end="url(#f5b)"/>
+        <line x1="658" y1="227" x2="708" y2="227" marker-end="url(#f5b)"/>
+      </g>
+    </svg>
+    <figcaption><b>The fast loop is feedforward; the slow loop is feedback.</b> The fast one never
+    looks at a bead — only at groove it has not welded yet, which is why it can act at all. The slow
+    one is the only place a finished bead is ever judged. <b>25 mm is not a design choice</b> — it
+    is the pool length, and the pool cannot be commanded finer than itself.</figcaption>
+  </figure>
+
+  <h4 class="sub">9.2 · The one signal it works from</h4>
+  <div class="prose">
+    <p>Everything the controller does comes from a single subtraction: <strong>what the scanner saw
+    minus what <em>f</em> predicted</strong>. Call it the residual. Its <em>shape</em> is what
+    carries the information — not its size.</p>
+  </div>
+
+  <figure>
+    <p class="fignum">Figure 8 — the same size of error, three different meanings</p>
+    <svg viewBox="0 0 900 340" role="img" aria-label="Three residual shapes. A smooth wide offset means the plate warped. A sharp narrow spike means a defect. A uniform offset of the same sign each pass means the model leans. Each has a different response.">
+      <defs><marker id="f6a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+      <!-- panel 1 -->
+      <text x="140" y="24" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="currentColor">SMOOTH · WIDE · GROWING</text>
+      <line x1="30" y1="120" x2="250" y2="120" stroke="currentColor" stroke-width="1" opacity=".3" stroke-dasharray="3 3"/>
+      <path d="M30,120 Q140,78 250,120" fill="none" stroke="#2f6fab" stroke-width="2.4"/>
+      <path d="M30,120 Q140,78 250,120 Z" fill="#2f6fab" opacity=".12"/>
+      <text x="140" y="146" text-anchor="middle" font-size="12.5" font-weight="600" fill="#2f6fab">the plate warped</text>
+      <text x="140" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity=".75">whole-body thermal contraction</text>
+      <rect x="46" y="180" width="188" height="26" rx="13" fill="#3d7a5f"/>
+      <text x="140" y="197" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#ffffff">REPLAN · no alarm</text>
+
+      <!-- panel 2 -->
+      <text x="450" y="24" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="currentColor">SHARP · NARROW</text>
+      <line x1="340" y1="120" x2="560" y2="120" stroke="currentColor" stroke-width="1" opacity=".3" stroke-dasharray="3 3"/>
+      <path d="M340,120 L424,120 L442,74 L460,120 L560,120" fill="none" stroke="#c4622d" stroke-width="2.4"/>
+      <path d="M424,120 L442,74 L460,120 Z" fill="#c4622d" opacity=".2"/>
+      <text x="450" y="146" text-anchor="middle" font-size="12.5" font-weight="600" fill="#c4622d">a defect</text>
+      <text x="450" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity=".75">a lump, a void, a trapped notch</text>
+      <rect x="356" y="180" width="188" height="26" rx="13" fill="#c4622d"/>
+      <text x="450" y="197" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#ffffff">FLAG · maybe repair</text>
+
+      <!-- panel 3 -->
+      <text x="760" y="24" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="600" fill="currentColor">FLAT · SAME SIGN EVERY PASS</text>
+      <line x1="650" y1="120" x2="870" y2="120" stroke="currentColor" stroke-width="1" opacity=".3" stroke-dasharray="3 3"/>
+      <line x1="650" y1="100" x2="870" y2="100" stroke="currentColor" stroke-width="2.4"/>
+      <rect x="650" y="100" width="220" height="20" fill="currentColor" opacity=".12"/>
+      <text x="760" y="146" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">the model leans</text>
+      <text x="760" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity=".75">bias — the watch that always gains</text>
+      <rect x="666" y="180" width="188" height="26" rx="13" fill="#3d7a5f"/>
+      <text x="760" y="197" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#ffffff">REPLAN absorbs it</text>
+
+      <!-- the rule -->
+      <rect x="30" y="238" width="840" height="82" rx="10" fill="var(--card-2)" stroke="var(--rule)" stroke-width="1"/>
+      <text x="52" y="262" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="600" fill="#2f6fab" letter-spacing="1.2">HOW TO TELL THEM APART, MECHANICALLY</text>
+      <text x="52" y="284" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="currentColor">fit a low-order curve to the residual  →  most of the energy in the fit   = smooth  = WARP</text>
+      <text x="52" y="304" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="currentColor">                                       →  large leftover, narrow support   = spiky  = DEFECT</text>
+    </svg>
+    <figcaption><b>Size tells you nothing; shape tells you everything.</b> All three residuals here
+    could have the same peak magnitude and the same total area, and they demand three different
+    responses. The mechanical test is a low-order polynomial fit: warping is <em>low spatial
+    frequency</em> because it comes from the whole plate contracting, whereas a defect is
+    <em>local</em> by definition.</figcaption>
+  </figure>
+
+  <h4 class="sub">9.3 · The full decision table</h4>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Residual signature</th><th>Reading</th><th>Action</th><th>Alarm?</th></tr></thead>
+      <tbody>
+        <tr><td>Below scanner noise (0.16 mm)</td><td class="dim">nothing happened</td><td>carry on</td><td class="dim">no</td></tr>
+        <tr><td>Smooth, wide, grows monotonically</td><td>plate warped</td><td class="yes">replan from measured</td><td class="dim">log the trend</td></tr>
+        <tr><td>Same sign and shape each pass</td><td>model bias</td><td class="yes">replan absorbs it</td><td class="dim">retrain if over spec</td></tr>
+        <tr><td>Sharp, localised, high frequency</td><td class="no">defect</td><td class="no">flag; consider a repair pass</td><td class="no">yes</td></tr>
+        <tr><td>Measured edge angle ≥ 90°</td><td class="no">lack-of-fusion risk</td><td class="no">next pass must not bury it</td><td class="no">hard fault</td></tr>
+        <tr><td>No legal settings close the gap</td><td class="no">saturated</td><td class="no">escalate — never guess</td><td class="no">stop</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub">9.4 · When nothing legal will work</h4>
+  <div class="prose">
+    <p>The last row of that table is the one most often left out of designs like this, and the most
+    dangerous to omit. If the search finds that <em>no</em> setting inside the machine's qualified
+    envelope closes the deficit, the controller must not quietly pick the least-bad option. It
+    climbs a ladder instead, and every rung is a bigger admission.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <h4>Widen the search, still legally</h4>
+      <p>Try a longer horizon, or allow a placement the heuristic would not have proposed. Cheap,
+      invisible, no consequences.</p>
+    </div>
+    <div class="step">
+      <h4>Add a pass</h4>
+      <p>The layer needs more metal than the plan allowed. Costs time, changes nothing else.</p>
+    </div>
+    <div class="step">
+      <h4>Re-cut the layer plan</h4>
+      <p>The remaining volume no longer divides the way it was going to. Replan the whole layer
+      stack from the measured groove, not just the next few passes.</p>
+    </div>
+    <div class="step">
+      <h4>Stop and ask a human</h4>
+      <p>The groove is outside anything the qualified procedure covers — warped past tolerance, or
+      a defect that needs grinding out. <strong>This is a success, not a failure:</strong> the
+      alternative is welding confidently into a joint that cannot be made sound.</p>
+    </div>
+  </div>
+
+  <h4 class="sub">9.5 · Does the loop actually close in time?</h4>
+  <div class="prose">
+    <p>Worth checking, because a controller that cannot finish thinking before the next pass starts
+    is not a controller. The numbers are comfortable, and not for the reason people expect.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Step</th><th class="n">Time</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Weld one pass</td><td class="n">~2 min</td><td class="dim">illustrative: a 500 mm seam at 4.4 mm/s</td></tr>
+        <tr><td>Rescan the bead</td><td class="n">seconds</td><td class="dim">one laser sweep</td></tr>
+        <tr><td>Search ~1000 plans × 5 passes</td><td class="n">milliseconds</td><td class="dim">5000 forward passes of a 45k-parameter net, batched on a GPU</td></tr>
+        <tr><td>Wait for interpass cooling</td><td class="n">minutes</td><td>the actual bottleneck</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key ok prose">
+    <span class="tag">The useful conclusion</span>
+    <p>The controller is <strong>not compute-limited</strong>. It is limited by measurement and by
+    how fast steel cools. That means there is no reason to compromise the search to make it fast —
+    and it means the design's real constraints are physical, which is a much better place to be
+    than fighting a deadline.</p>
+  </div>
+
+  <h4 class="sub">9.6 · What the controller does not do</h4>
+  <ul>
+    <li><strong>It does not touch the bead being laid.</strong> §08 — the pool makes that impossible,
+    not merely hard.</li>
+    <li><strong>It does not model distortion.</strong> It measures the consequence and replans. This
+    is the design's central simplification and the reason it can work at all.</li>
+    <li><strong>It does not control penetration or seam tracking.</strong> Those are separate,
+    faster loops with their own sensors — deliberately out of scope here.</li>
+    <li><strong>It does not adjust torch angle.</strong> There is no torch-angle term in the physics
+    at all, by an explicit earlier decision: adding an input the model cannot respond to would be
+    worse than leaving it out, because it would <em>look</em> supported.</li>
+  </ul>
+</section>
+
+<hr>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">10</span>Where this actually stands</h2>
+    <p class="lede">Design is not code. Roughly half of this exists, and it is worth being blunt
+    about which half.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Component</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>Physics simulators</td><td class="yes">built</td><td>329 tests passing</td></tr>
+        <tr><td>Dataset generator</td><td class="yes">built</td><td>—</td></tr>
+        <tr><td>Training corpus</td><td class="yes">built</td><td>6,163 bead profiles, verified</td></tr>
+        <tr><td><span class="mono">f</span> — the network</td><td class="yes">built &amp; trained</td><td>47,158 parameters; 39 tests</td></tr>
+        <tr><td>Trainer — single step</td><td class="yes">built</td><td>magnitude + bias loss</td></tr>
+        <tr><td>Trainer — the 5-pass rollout</td><td class="no">blocked</td><td>needs a differentiable reconstruction</td></tr>
+        <tr><td>Cost function <span class="mono">J</span></td><td class="no">not built</td><td>—</td></tr>
+        <tr><td>Planner</td><td class="no">not built</td><td>needs f&rsquo;s measured drift curve first</td></tr>
+        <tr><td>Controller</td><td class="no">not built</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h4 class="sub">10.1 · What <span class="mono">f</span> actually does, measured</h4>
+  <div class="prose">
+    <p>Trained on the 5,128-pass halo split (doubled by exact mirroring), selected on the
+    physically-anchored validation set, reported on a test set it never saw. Three seeds.</p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Measure</th><th>Result</th><th>What it is against</th></tr></thead>
+      <tbody>
+        <tr><td>Height error, RMSE</td><td class="n">1.177 &plusmn; 0.017 mm</td><td>the ~1 mm per-pass spec</td></tr>
+        <tr><td><strong>Height bias</strong></td><td class="n yes">&minus;0.005 &plusmn; 0.006 mm</td><td>started at &minus;0.980 mm</td></tr>
+        <tr><td>Height error, p95</td><td class="n">2.350 mm</td><td>—</td></tr>
+        <tr><td>Bead area, MAE</td><td class="n">3.63 mm&sup2;</td><td>1.45 mm&sup2; on the training split</td></tr>
+        <tr><td>Toe angle, MAE</td><td class="n no">12.31&deg;</td><td>12.63&deg; from a constant</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="key ok prose">
+    <span class="tag">The result that matters</span>
+    <p>Section 05 argued that a <em>consistent</em> error is what kills a multi-pass build, because
+    it accumulates while random error partly cancels. That is now measured on our own simulator:
+    a one-off disturbance <strong>decays</strong> over the following passes, while a sustained bias
+    <strong>compounds as roughly N<sup>0.67</sup></strong>. So bias is the number to watch &mdash;
+    and it came out at <strong>&minus;0.005 mm</strong>, a fiftyfold reduction from where training
+    started. An unbiased <span class="mono">f</span> at 0.8 mm beats a biased one at 0.3 mm.</p>
+    <p>Tellingly, the largest single improvement of the whole exercise was not architectural. It
+    was changing <em>which run gets selected</em> &mdash; carrying bias in the early-stopping
+    criterion rather than magnitude alone. That one line moved bias six times closer to zero and
+    five times tighter across seeds.</p>
+  </div>
+
+  <div class="key warn prose">
+    <span class="tag">The part that does not work</span>
+    <p>The <strong>toe angles are barely better than a constant</strong> &mdash; 12.31&deg; against
+    12.63&deg; for always predicting the same number &mdash; and they gate the hard 90&deg;
+    lack-of-fusion limit, so this is the failure that matters. Three fixes were built and measured,
+    and all three were refuted: weighting the angles in the loss (inert across a 50&times; sweep),
+    replacing the pooling that discards <em>where</em> a feature occurred (inert across three
+    seeds), and a direct linear path to the outputs (buys 0.3&deg;, costs a thirtyfold worse bias).</p>
+    <p>Two things explain it. <strong>A quarter of the variance is unreachable by construction:</strong>
+    26% is driven by quantities the model is deliberately forbidden to see, because they are
+    unobservable when a plan is made. And of what remains, a <strong>32-coefficient linear
+    regression beats the 47,158-parameter network</strong> &mdash; 11.06&deg; against 12.31&deg;
+    &mdash; which points at the two angle outputs being starved by the eighty-four others sharing
+    the same trunk.</p>
+    <p>The practical answer is not a better prediction. It is to treat the measured
+    <strong>~12&deg; of uncertainty as a safety margin</strong> on the 90&deg; limit, which is what
+    a hard constraint is for.</p>
+  </div>
+
+  <div class="key warn prose">
+    <span class="tag">The honest risk</span>
+    <p>The paper this architecture follows trained on <strong>592,737</strong> cross-sections. We
+    have <strong>6,163</strong> — about <strong>1%</strong>. So the network is deliberately built at
+    roughly a quarter of the published size, and the part of their design needing the most data (a
+    pre-trained attention module) is dropped because we have no labels for it. That is the likeliest
+    place this underperforms its source, and it should be the first thing measured rather than
+    hoped about.</p>
+  </div>
+</section>
+
+<section>
+  <div class="prose">
+    <h2><span class="num">11</span>The numbers underneath</h2>
+    <p class="lede">Every figure in this document, with where it came from. Anything not on this
+    list is an assumption, not a measurement.</p>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Quantity</th><th class="n">Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Accuracy needed per pass</td><td class="n">≈1 mm</td><td>derived from welding-procedure speed latitude</td></tr>
+        <tr><td>Shape-description floor</td><td class="n">0.035 mm</td><td>measured on the corpus</td></tr>
+        <tr><td>Single-scan noise</td><td class="n">0.16 mm</td><td>real profilometer scans</td></tr>
+        <tr><td>Simulator vs real beads</td><td class="n">0.360 mm</td><td>real cross-sections</td></tr>
+        <tr><td>Bias / random crossover</td><td class="n">12.3 passes</td><td>computed</td></tr>
+        <tr><td>Drift, 31 passes, no rescan</td><td class="n">−11.54 mm²</td><td>published 31-pass weld</td></tr>
+        <tr><td>Drift, rescanning every 5th</td><td class="n">−1.37 mm²</td><td>same source</td></tr>
+        <tr><td>Weld pool length</td><td class="n">26 mm</td><td>computed; 16–30 mm across the range</td></tr>
+        <tr><td>Pool ahead of the arc</td><td class="n">~3 mm</td><td>computed</td></tr>
+        <tr><td>Preheat reach ahead of arc</td><td class="n">2.5–3.0 mm</td><td>computed</td></tr>
+        <tr><td>Geometry-loop dead time</td><td class="n">~6 s</td><td>pool length ÷ travel speed</td></tr>
+        <tr><td>Network size</td><td class="n">47,158</td><td>parameters, counted &mdash; built</td></tr>
+        <tr><td>Passes actually trained on</td><td class="n">10,256</td><td>halo split, doubled by mirroring</td></tr>
+        <tr><td>Height error of <span class="mono">f</span></td><td class="n">1.177 mm</td><td>measured, 3 seeds</td></tr>
+        <tr><td>Bias of <span class="mono">f</span></td><td class="n">&minus;0.005 mm</td><td>measured, 3 seeds</td></tr>
+        <tr><td>Error growth from a sustained bias</td><td class="n">N<sup>0.67</sup></td><td>measured over 8&ndash;9 passes</td></tr>
+        <tr><td>Toe-angle variance that is unreachable</td><td class="n">26%</td><td>driven by unobservable quantities</td></tr>
+        <tr><td>Budget re-allocation gain, planner</td><td class="n">10&times;</td><td>same cost, same algorithm</td></tr>
+        <tr><td>Training corpus</td><td class="n">6,163</td><td>generated, verified</td></tr>
+        <tr><td>Corpus of the source paper</td><td class="n">592,737</td><td>published</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Design reference for the <span class="mono">f → planner → controller</span> pipeline. Nothing
+  described here is implemented beyond the physics simulators, the dataset generator, the
+  corpus, and <span class="mono">f</span> itself, which is now built and trained &mdash;
+  see section 10 for what it measures and what it does not. The reasoning, the risks and the open questions live in the repository spec; this document
+  is the picture, not the argument.</p>
+</footer>
+
+</div>
+
+</body></html>
