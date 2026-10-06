@@ -1,0 +1,596 @@
+<title>Draw, Match, Rescan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one 68ch reading column; tables, the summary strip and the diagram break out to 1040px. */
+  :root {
+    --bg:          #F2F4F5;
+    --panel:       #FFFFFF;
+    --ink:         #14181C;
+    --ink-2:       #3F4952;
+    --muted:       #6B7680;
+    --rule:        #D3D9DE;
+    --steel:       #2B5C80;   /* ordinary code */
+    --steel-wash:  #E1EAF1;
+    --temper:      #8E5F0E;   /* the one learned part, f */
+    --temper-wash: #F5EBD6;
+    --cut:         #9B2F2F;   /* removed / blocked */
+    --cut-wash:    #F6E3E1;
+    --keep:        #2E6B45;   /* built / kept */
+    --keep-wash:   #E0EFE5;
+    --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-body:    "Literata", Georgia, "Times New Roman", serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101418; --panel: #171D22; --ink: #E4E9ED; --ink-2: #B4BEC7; --muted: #808C96;
+      --rule: #2A333B; --steel: #7FB2D9; --steel-wash: #16252F; --temper: #E2B55E;
+      --temper-wash: #2A2112; --cut: #E58A84; --cut-wash: #2C1716; --keep: #7CC79A;
+      --keep-wash: #14261B; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101418; --panel: #171D22; --ink: #E4E9ED; --ink-2: #B4BEC7; --muted: #808C96;
+    --rule: #2A333B; --steel: #7FB2D9; --steel-wash: #16252F; --temper: #E2B55E;
+    --temper-wash: #2A2112; --cut: #E58A84; --cut-wash: #2C1716; --keep: #7CC79A;
+    --keep-wash: #14261B; color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); font-size: 17px; line-height: 1.62;
+    margin: 0; padding-inline: 20px; padding-block: 0 96px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .col  { max-width: 68ch; }
+
+  header { padding-block: 64px 36px; border-bottom: 2px solid var(--ink); margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--font-display); font-weight: 700; letter-spacing: -.02em;
+    font-size: clamp(2.3rem, 6.4vw, 3.8rem); line-height: 1.02; margin: 0 0 18px; text-wrap: balance;
+  }
+  .standfirst { font-size: 1.14rem; color: var(--ink-2); max-width: 62ch; margin: 0; }
+
+  h2 {
+    font-family: var(--font-display); font-weight: 650; font-size: 1.62rem; line-height: 1.18;
+    letter-spacing: -.01em; margin: 72px 0 8px; text-wrap: balance;
+  }
+  h2 .sec { font-family: var(--font-mono); font-size: .62em; font-weight: 500; color: var(--muted); margin-right: .7em; vertical-align: .14em; }
+  h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; margin: 36px 0 4px; text-wrap: balance; }
+  p { margin: 14px 0; }
+  strong { font-weight: 600; }
+  code, .m { font-family: var(--font-mono); font-size: .84em; }
+  code { background: var(--steel-wash); padding: .08em .34em; border-radius: 3px; }
+  a { color: var(--steel); }
+  a:focus-visible { outline: 2px solid var(--steel); outline-offset: 2px; }
+
+  /* Summary strip: before → after */
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; background: var(--rule);
+           border: 1px solid var(--rule); margin: 28px 0 8px; }
+  .strip > div { background: var(--panel); padding: 16px 18px; min-width: 0; }
+  .strip .k { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .strip .v { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; line-height: 1.2; margin-top: 6px;
+              font-variant-numeric: tabular-nums; }
+  .strip .v .was { color: var(--muted); font-weight: 500; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .strip .v .arrow { color: var(--muted); font-weight: 400; margin: 0 .25em; }
+  .strip .n { font-size: .86rem; color: var(--ink-2); margin-top: 4px; }
+
+  /* Verdict */
+  .verdict { background: var(--panel); border: 1px solid var(--rule); padding: 20px 24px; margin: 30px 0; }
+  .verdict .label, .note .label {
+    font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--steel); display: block; margin-bottom: 4px;
+  }
+  .verdict p:last-child, .note p:last-child { margin-bottom: 0; }
+  .verdict ul { padding-left: 20px; margin: 8px 0; }
+  .verdict li { margin: 6px 0; }
+  .note { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 14px 0; margin: 26px 0; }
+  .note .label { color: var(--muted); }
+
+  /* Figure */
+  figure { margin: 36px 0; }
+  .scroll { overflow-x: auto; }
+  figure svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  figcaption { font-size: .9rem; color: var(--ink-2); margin-top: 12px; max-width: 68ch; }
+  .d-code   { fill: var(--steel-wash); stroke: var(--steel); stroke-width: 1.5; }
+  .d-learn  { fill: var(--temper-wash); stroke: var(--temper); stroke-width: 2; }
+  .d-phys   { fill: var(--panel); stroke: var(--muted); stroke-width: 1.5; }
+  .d-t      { fill: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+  .d-s      { fill: var(--ink-2); font-family: var(--font-mono); font-size: 11px; }
+  .d-lab    { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .d-learnt { fill: var(--temper); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; }
+  .d-line   { stroke: var(--ink-2); stroke-width: 1.5; fill: none; }
+  .d-dash   { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+  .d-head   { fill: var(--ink-2); }
+  .d-headm  { fill: var(--muted); }
+
+  /* Cards for the three components */
+  .trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; margin: 26px 0; }
+  .card { background: var(--panel); border: 1px solid var(--rule); padding: 18px 20px; min-width: 0; }
+  .card h4 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; margin: 0 0 2px; }
+  .card .role { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--steel); }
+  .card ul { padding-left: 18px; margin: 10px 0 0; font-size: .93rem; }
+  .card li { margin: 6px 0; }
+  .card .io { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-2); border-top: 1px solid var(--rule);
+              margin-top: 12px; padding-top: 10px; line-height: 1.55; }
+
+  /* Tables */
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 18px 0; min-width: 640px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase;
+       color: var(--muted); font-weight: 500; }
+  td.num { font-family: var(--font-mono); font-size: .86rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td:first-child { font-weight: 600; }
+  .tag { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .04em; padding: .16em .5em; border-radius: 3px; white-space: nowrap; }
+  .tag.built   { background: var(--keep-wash); color: var(--keep); }
+  .tag.new     { background: var(--steel-wash); color: var(--steel); }
+  .tag.learned { background: var(--temper-wash); color: var(--temper); }
+  .tag.drop    { background: var(--cut-wash); color: var(--cut); }
+
+  /* Math / code blocks */
+  .eq { font-family: var(--font-mono); font-size: .86rem; line-height: 1.85; background: var(--panel);
+        border: 1px solid var(--rule); padding: 16px 20px; margin: 20px 0; overflow-x: auto; white-space: pre; color: var(--ink); }
+  .eq .c { color: var(--muted); }
+  .eq .hi { color: var(--steel); font-weight: 600; }
+
+  /* Build order: a real sequence, so it is numbered */
+  ol.phases { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 14px; counter-reset: ph -1; }
+  ol.phases li { counter-increment: ph; display: grid; grid-template-columns: 3.2rem 1fr; gap: 14px; align-items: start; }
+  ol.phases li::before { content: "P" counter(ph); font-family: var(--font-mono); font-weight: 600; font-size: .9rem;
+       color: var(--steel); border: 1.5px solid var(--steel); border-radius: 3px; text-align: center; padding: 4px 0; }
+  ol.phases li > div { min-width: 0; }
+  ol.phases h4 { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; margin: 2px 0 2px; }
+  ol.phases p { margin: 4px 0; font-size: .95rem; }
+  ol.phases .gate { font-family: var(--font-mono); font-size: .8rem; color: var(--keep); }
+
+  ul.tight li { margin: 8px 0; }
+  ul.checks { list-style: none; padding: 0; display: grid; gap: 16px; margin: 20px 0; }
+  ul.checks li > strong { display: block; font-family: var(--font-display); font-size: 1.02rem; }
+  ul.checks p { margin: 4px 0; font-size: .95rem; }
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--rule); font-size: .88rem; color: var(--ink-2); }
+
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .verdict { padding: 16px 16px; }
+  }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Multi-pass arc welding · planner specification · ASD-STE100 · 6 Oct 2026</p>
+  <h1>Draw, Match, Rescan</h1>
+  <p class="standfirst">This page specifies the planner for a multi-pass arc weld. Keep the bead
+  model <em>f</em> with no change. Replace the 5-pass search with a fill planner and a bead matcher.
+  Scan the groove after each pass.</p>
+</header>
+
+<div class="strip" role="list">
+  <div role="listitem"><div class="k">Search dimensions</div>
+    <div class="v"><span class="was">20</span><span class="arrow">→</span>3</div>
+    <div class="n">numbers for each decision</div></div>
+  <div role="listitem"><div class="k">Free score weights</div>
+    <div class="v"><span class="was">4</span><span class="arrow">→</span>0</div>
+    <div class="n">fixed rule, one distance, hard limits</div></div>
+  <div role="listitem"><div class="k">f steps from a scan</div>
+    <div class="v"><span class="was">5</span><span class="arrow">→</span>1</div>
+    <div class="n">f does not use its own output as input</div></div>
+  <div role="listitem"><div class="k">Passes in view</div>
+    <div class="v"><span class="was">5</span><span class="arrow">→</span>all</div>
+    <div class="n">passes that the planner sees</div></div>
+</div>
+
+<div class="verdict">
+  <span class="label">Decision</span>
+  <p>Do not use the action-first design or the target-first design as written. Use these two parts:</p>
+  <ul>
+    <li>The <strong>fill planner</strong> makes a geometric plan for the full groove. The plan sets
+    the layers, the beads in each layer, and the position and area of each bead.</li>
+    <li>The <strong>bead matcher</strong> selects the settings for the next bead. It uses one step
+    of <em>f</em>.</li>
+  </ul>
+  <p>After each pass, scan the groove. Then use the two parts again on the measured surface. Keep
+  the controller from <em>Plan, Weld, Rescan</em> §9 with no change.</p>
+</div>
+
+<h2><span class="sec">§1</span>Requirements</h2>
+<div class="scroll">
+<table>
+  <thead><tr><th>Requirement</th><th>Definition</th><th>Test</th></tr></thead>
+  <tbody>
+    <tr><td>Simple</td><td><em>f</em> is the only learned part. Each planner value comes from a measurement or from the welding procedure. You can step through all other code in a debugger.</td><td>Count the learned parts, the search dimensions and the free weights.</td></tr>
+    <tr><td>Scales</td><td>The plan covers the full groove for all pass counts. The work for each pass does not increase with build length. A new groove shape changes the planner input, not the planner code.</td><td>Do 31-pass builds and asymmetric grooves in the simulator.</td></tr>
+    <tr><td>Feasible</td><td>The design uses the parts that exist. You can test each new part alone. The design removes blocked work from the critical path.</td><td>Status table in §4.</td></tr>
+    <tr><td>Weld quality</td><td>The beads fill the groove to the cap line. No edge angle is 90° or more (lack of fusion). The planner sets the pass count. Each scan corrects the bias of <em>f</em>.</td><td>Simulator test in §7.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="sec">§2</span>Architecture</h2>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 960 410" role="img" aria-label="Loop diagram. The scan goes to the controller, then to the fill planner, then to the bead matcher. The bead matcher sends 1024 samples to f, the only learned part, and receives predicted beads. The bead matcher sends the settings to the weld. After each pass, the loop goes back to the scan. The bead matcher also sends its prediction to the controller for the residual.">
+    <defs>
+      <marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head" d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="hm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-headm" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+
+    <!-- legend -->
+    <rect x="20" y="22" width="14" height="14" class="d-learn"/><text x="42" y="34" class="d-lab">learned</text>
+    <rect x="120" y="22" width="14" height="14" class="d-code"/><text x="142" y="34" class="d-lab">ordinary code</text>
+    <rect x="262" y="22" width="14" height="14" class="d-phys"/><text x="284" y="34" class="d-lab">physical step</text>
+
+    <!-- prediction path to controller -->
+    <path class="d-dash" d="M670,150 L670,96 L290,96 L290,144" marker-end="url(#hm)"/>
+    <text x="480" y="88" text-anchor="middle" class="d-lab">predicted surface, for the residual</text>
+
+    <!-- main row -->
+    <rect x="20"  y="150" width="160" height="72" rx="4" class="d-phys"/>
+    <text x="100" y="182" text-anchor="middle" class="d-t">Scan</text>
+    <text x="100" y="202" text-anchor="middle" class="d-s">full cross-section</text>
+
+    <rect x="210" y="150" width="160" height="72" rx="4" class="d-code"/>
+    <text x="290" y="182" text-anchor="middle" class="d-t">Controller</text>
+    <text x="290" y="202" text-anchor="middle" class="d-s">scan − prediction</text>
+
+    <rect x="400" y="150" width="160" height="72" rx="4" class="d-code"/>
+    <text x="480" y="182" text-anchor="middle" class="d-t">Fill planner</text>
+    <text x="480" y="202" text-anchor="middle" class="d-s">full groove · geometry</text>
+
+    <rect x="590" y="150" width="160" height="72" rx="4" class="d-code"/>
+    <text x="670" y="182" text-anchor="middle" class="d-t">Bead matcher</text>
+    <text x="670" y="202" text-anchor="middle" class="d-s">3 numbers · 1 step</text>
+
+    <rect x="780" y="150" width="160" height="72" rx="4" class="d-phys"/>
+    <text x="860" y="182" text-anchor="middle" class="d-t">Weld one pass</text>
+    <text x="860" y="202" text-anchor="middle" class="d-s">then cool</text>
+
+    <line x1="180" y1="186" x2="204" y2="186" class="d-line" marker-end="url(#h)"/>
+    <line x1="370" y1="186" x2="394" y2="186" class="d-line" marker-end="url(#h)"/>
+    <line x1="560" y1="186" x2="584" y2="186" class="d-line" marker-end="url(#h)"/>
+    <line x1="750" y1="186" x2="774" y2="186" class="d-line" marker-end="url(#h)"/>
+
+    <text x="290" y="244" text-anchor="middle" class="d-lab">replan · flag · stop</text>
+    <text x="480" y="244" text-anchor="middle" class="d-lab">next target bead</text>
+    <text x="762" y="140" text-anchor="middle" class="d-lab">settings a_k</text>
+
+    <!-- f -->
+    <line x1="648" y1="222" x2="648" y2="284" class="d-line" marker-end="url(#h)"/>
+    <line x1="692" y1="290" x2="692" y2="228" class="d-line" marker-end="url(#h)"/>
+    <text x="638" y="262" text-anchor="end" class="d-lab">1024 samples</text>
+    <text x="702" y="262" class="d-lab">predicted beads</text>
+    <rect x="600" y="290" width="140" height="64" rx="4" class="d-learn"/>
+    <text x="670" y="318" text-anchor="middle" class="d-t" font-style="italic">f</text>
+    <text x="670" y="338" text-anchor="middle" class="d-learnt">LEARNED · FIXED</text>
+
+    <!-- loop back -->
+    <path class="d-line" d="M860,222 L860,384 L100,384 L100,228" marker-end="url(#h)"/>
+    <text x="330" y="376" text-anchor="middle" class="d-lab">after each pass · scan: seconds · cooling: minutes</text>
+  </svg>
+  </div>
+  <figcaption><em>f</em> is the only learned part. The bead matcher calls <em>f</em> for one step,
+  always from a measured surface. The fill planner does not call <em>f</em>. The controller is the
+  controller in <em>Plan, Weld, Rescan</em> §9.</figcaption>
+</figure>
+
+<div class="trio">
+  <div class="card">
+    <span class="role">Ordinary code · new</span>
+    <h4>Fill planner</h4>
+    <ul>
+      <li>Makes a list of all legal fill keys. A fill key gives the number of beads in each layer. Example: <code>[2,3,3]</code> is 2 beads, then 3, then 3.</li>
+      <li>Keeps only the bead areas that the machine can deposit (see the area equation).</li>
+      <li>Gives each fill key a geometric score against the measured cross-section. It does not call <em>f</em>.</li>
+      <li>Selects with a fixed rule: the fewest passes, then the fewest layers. Most defects occur at arc starts and arc stops.</li>
+      <li>Runs again after each scan. The plan always agrees with the measured groove, also after distortion.</li>
+    </ul>
+    <div class="io">in: measured groove (full cross-section, absolute coordinates)<br>out: list of target beads; the matcher uses only the first</div>
+  </div>
+  <div class="card">
+    <span class="role">Ordinary code · new</span>
+    <h4>Bead matcher</h4>
+    <ul>
+      <li>Samples 1024 sets of current <span class="m">I</span>, voltage <span class="m">U</span> and torch position <span class="m">y</span>.</li>
+      <li>Calculates travel speed from the target area: <span class="m">v_t = κ·I / A*</span>. Calculates wire feed from current. Each sample has the correct area.</li>
+      <li>Removes each sample that is outside the qualified box.</li>
+      <li>Sends all samples to <em>f</em> in one batch. Makes each surface with the reconstruction R.</li>
+      <li>Removes each sample with a predicted edge angle above 78° (90° minus a 12° margin). Removes each sample with a re-entrant surface.</li>
+      <li>Selects the sample with the predicted surface nearest to the target surface. Optional: sample again near the best 10%.</li>
+    </ul>
+    <div class="io">in: target bead; measured 16 mm window at the torch position of each sample<br>out: settings a_k = (I, U, v_t, y) and wire feed v_f</div>
+  </div>
+  <div class="card">
+    <span class="role">Ordinary code · as designed</span>
+    <h4>Controller</h4>
+    <ul>
+      <li>Calculates the residual: scan minus prediction.</li>
+      <li>Smooth and wide residual: distortion. Replan.</li>
+      <li>Flat residual with the same sign at each pass: bias of <em>f</em>. Replan.</li>
+      <li>Sharp and local residual: defect. Flag it.</li>
+      <li>Stops the weld if a measured edge angle is 90° or more.</li>
+      <li>No legal settings: the controller first adds a pass. Next, it makes a new fill plan. Last, it stops and tells an operator.</li>
+    </ul>
+    <div class="io">in: scan and last prediction<br>out: replan, flag or stop</div>
+  </div>
+</div>
+
+<div class="col">
+  <h3>Area equation</h3>
+  <p>The bead area comes from the knob settings. No model is necessary.</p>
+</div>
+<div class="eq">A  =  A_wire · v_f / v_t          <span class="c">metal for each unit length of seam</span>
+v_f = κ · I / A_wire               <span class="c">current sets wire feed</span>
+⇒  <span class="hi">A = κ · I / v_t</span>                 <span class="c">multiply by deposition efficiency if spatter is large</span>
+
+planner:  A ∈ [ κ·I_min / v_t,max ,  κ·I_max / v_t,min ]     <span class="c">the planner uses only these areas</span>
+matcher:  v_t = κ · I / A*                                  <span class="c">the matcher samples I, U, y; v_t follows</span></div>
+
+<div class="col">
+  <h3>Scan after each pass</h3>
+  <p>A scan is one laser sweep. It takes seconds. The cooling time between passes is minutes
+  (<em>Plan, Weld, Rescan</em> §9.5). Thus a scan after each pass adds almost no time. With this
+  scan, <em>f</em> always starts from a measured surface. <em>f</em> does not use its own output as
+  input. Thus its error cannot accumulate in a plan.</p>
+</div>
+
+<h2><span class="sec">§3</span>Reasons</h2>
+
+<h3>Comparison</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th></th><th>Action-first, as written</th><th>Target-first, as written</th><th>This design</th></tr></thead>
+  <tbody>
+    <tr><td>Learned parts</td><td><em>f</em></td><td><em>f</em></td><td><em>f</em></td></tr>
+    <tr><td>Search</td><td>20 numbers (5 passes × 4 knobs)</td><td>fill keys, then gradient descent through <em>f</em></td><td>fill keys, then 3 sampled numbers</td></tr>
+    <tr><td>Foresight from</td><td>5-pass prediction with <em>f</em></td><td>geometric plan</td><td>geometric plan</td></tr>
+    <tr><td>Passes in view</td><td>5 of approximately 31</td><td>all</td><td>all</td></tr>
+    <tr><td><em>f</em> calls for each decision</td><td class="num">20,480</td><td>approximately 20 × passes, plus gradient steps</td><td class="num">2,048 maximum</td></tr>
+    <tr><td>Uses gradients of <em>f</em></td><td>no</td><td>yes</td><td>no</td></tr>
+    <tr><td><em>f</em> steps from a scan</td><td class="num">up to 5</td><td>full plan (for re-rank)</td><td class="num">1</td></tr>
+    <tr><td>Free score weights</td><td class="num">4</td><td>not decided (<em>Two Ways</em> §08)</td><td class="num">0</td></tr>
+    <tr><td>Pass count</td><td>result of the search</td><td>set by the plan</td><td>set by the plan</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="col">
+  <p>Computation time is not a constraint. The old search takes milliseconds. Each chained
+  prediction adds error from <em>f</em>. Fewer chained predictions give less error.</p>
+</div>
+
+<h3>The fill term cannot see bead position</h3>
+<div class="col">
+  <p>The action-first cost uses the deficit D below the fill line g. The reconstruction R makes each
+  bead area equal to the predicted area A.</p>
+</div>
+<div class="eq">D(s) = ∫ max(0, g − s) dx
+if  s + Δs ≤ g  at all x:   D(s + Δs) = ∫ (g − s − Δs) dx = D(s) − ∫ Δs dx = <span class="hi">D(s) − A</span></div>
+<div class="col">
+  <p>Thus D decreases by A at all bead positions if no bead goes above g. Over 5 passes, the fill
+  term is the sum of 5 areas. The area equation gives these areas without <em>f</em>. The appendix
+  shows a numerical check.</p>
+  <p>Only two other parts of the action-first cost use <em>f</em>:</p>
+  <ul class="tight">
+    <li>The roughness after 5 chained predictions.</li>
+    <li>The edge-angle limits. The edge-angle error of <em>f</em> is 12.31°. A constant prediction
+    gives 12.63°.</li>
+  </ul>
+  <p>The start point of the CEM search sets most bead positions. The action-first design takes this
+  start point from a placement heuristic: left, right, centre, then up as the groove fills. This heuristic is a fill plan. This design replaces it with a fill plan for the full
+  groove.</p>
+</div>
+
+<h3>The horizon of 5 sets the scan interval, not the plan length</h3>
+<div class="col">
+  <p>The action-first design calculates <span class="m">H* = (σ/μ)² = 12.3</span>. At this pass
+  count, the bias of <em>f</em> becomes larger than the random error in the estimated surface. This
+  value sets the scan interval. It does not set the plan horizon.</p>
+  <p>The plan horizon must cover the full effect of a decision. This effect can continue for one
+  full layer. Example: a flat layer centre leaves a narrow, steep slot at the sidewall. Two or three
+  passes later, the bead in that slot cannot wet the two walls. Its edge angle becomes more than
+  90°.</p>
+  <p>A 5-pass horizon sees this failure only if it occurs in those 5 passes. A full-groove plan
+  always sees it.</p>
+</div>
+
+<h3>Gradients of <em>f</em> are not necessary</h3>
+<div class="col">
+  <p><em>Two Ways</em> §05 rejects target-first because target-first uses the gradients of
+  <em>f</em>. That argument applies only to a gradient solver. When the area equation sets v_t, the
+  inverse has 3 free numbers. 1024 samples cover 3 dimensions well. The samples use only the values of
+  <em>f</em>.</p>
+  <p>The surface-blind argument in <em>Two Ways</em> §05 applies to the two designs equally. The
+  inverse uses gradients with respect to the settings, not the surface. A surface-blind <em>f</em>
+  gives incorrect beads in the two designs. Each scan corrects the two designs in the same way. Thus
+  the branch audit (§5) is necessary for all designs.</p>
+</div>
+
+<h3>Scale</h3>
+<div class="col">
+  <ul class="tight">
+    <li><strong>Long builds.</strong> The plan covers the full groove for all pass counts. The work
+    for each pass is constant. <em>f</em> does not chain. Thus 60 passes are not more difficult for
+    <em>f</em> than 6 passes.</li>
+    <li><strong>New groove shapes.</strong> Asymmetric V-grooves and crown shapes (<em>Two Ways</em>
+    §08) change only the planner input. <em>f</em> sees only a 16 mm local window. <em>f</em> must
+    have training data for new local shapes, for example a new wall angle. This is true for all
+    designs.</li>
+    <li><strong>Along the seam.</strong> One pass goes along the full seam. Thus the fill key is the
+    same along the seam. The target area can change at each station. The fast loop (each 25 mm,
+    9–14 s look-ahead) can call the same matcher.</li>
+    <li><strong>Size of the fill-key list.</strong> The list has approximately 4,801 fill keys at
+    this time. The planner scores them without <em>f</em>. The time limit is the cooling time
+    (minutes). If a large groove gives millions of fill keys, replace the list with dynamic
+    programming, one layer at a time.</li>
+  </ul>
+</div>
+
+<h3>Weld quality</h3>
+<div class="col">
+  <ul class="tight">
+    <li><strong>Fill.</strong> The planner uses only areas that the knobs can deposit. The matcher
+    sets the target area exactly. Thus the plan and the bead have the same metal volume.</li>
+    <li><strong>Lack of fusion.</strong> Three barriers prevent it. The plan prevents narrow slots.
+    The matcher removes predicted edge angles above 78°. The controller stops the weld at a measured
+    edge angle of 90° or more.</li>
+    <li><strong>Bias.</strong> On a real 31-pass weld, a scan after each 5th bead decreased the
+    accumulated area error from −11.54 mm² to −1.37 mm². A scan after each pass must give an equal or
+    better result. This is a prediction. The §7 test measures it.</li>
+    <li><strong>No legal settings.</strong> The controller uses its escalation steps. The last step
+    is: stop and tell an operator.</li>
+  </ul>
+</div>
+
+<h2><span class="sec">§4</span>Status</h2>
+<div class="scroll">
+<table>
+  <thead><tr><th>Component</th><th>Status</th><th>In this design</th></tr></thead>
+  <tbody>
+    <tr><td>Physics simulators</td><td><span class="tag built">built</span> 329 tests</td><td>the plant for all tests</td></tr>
+    <tr><td>Training corpus</td><td><span class="tag built">built</span> 6,163 profiles</td><td>use again; also gives bead width as a function of area</td></tr>
+    <tr><td><em>f</em></td><td><span class="tag learned">built</span> 47,158 parameters</td><td>use with no change, after the §5 audit</td></tr>
+    <tr><td>Reconstruction R</td><td><span class="tag built">built</span></td><td>use with no change</td></tr>
+    <tr><td>Trainer, single step</td><td><span class="tag built">built</span> magnitude and bias loss</td><td>the only trainer that is necessary</td></tr>
+    <tr><td>Trainer, 5-pass rollout</td><td><span class="tag drop">blocked</span> must have a differentiable R</td><td>not necessary: <em>f</em> does not chain</td></tr>
+    <tr><td>Frame stitching</td><td><span class="tag drop">not solved</span> 7.9% of pass pairs have no overlap</td><td>not necessary: it occurs only when you chain recorded passes</td></tr>
+    <tr><td>Cost function J</td><td><span class="tag new">not built</span></td><td>replaced by the area equation, one distance and hard limits</td></tr>
+    <tr><td>Planner</td><td><span class="tag new">not built</span></td><td>fill planner and bead matcher; both new, both ordinary code</td></tr>
+    <tr><td>Gradient inverse solver</td><td><span class="tag new">not built</span></td><td>not necessary</td></tr>
+    <tr><td>Controller</td><td><span class="tag new">not built</span></td><td>same as in the two designs</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="col">
+  <p><em>Plan, Weld, Rescan</em> names frame stitching as its top risk. Frame stitching applies
+  only to multi-step training. A scan after each pass removes multi-step training. This design uses
+  all the built parts of action-first: <em>f</em>, its trainer and R.</p>
+</div>
+
+<h2><span class="sec">§5</span>Checks before use</h2>
+<div class="col">
+  <p>Do these checks before you use <em>f</em> in a planner.</p>
+  <ul class="checks">
+    <li><strong>Make sure that <em>f</em> sees the groove.</strong>
+      <p>22 of 36 trained checkpoints do not see it. A flat groove changes their prediction by less
+      than 0.01 mm. The specification is approximately 1 mm.</p>
+      <p>Test: make the groove flat. The prediction must change by much more than 0.01 mm.</p></li>
+    <li><strong>Make sure that the attention gate can follow the torch.</strong>
+      <p>Plot the gate output at different torch positions. A per-position sigmoid of a linear
+      function cannot make a window that moves with the torch.</p>
+      <p>If the gate does not move with the torch, use a small MLP or a parametric window.</p></li>
+    <li><strong>Make sure that the frames agree with training.</strong>
+      <p>Each training window has its centre at the torch of its pass. Put the window of each sample
+      at the torch position of that sample.</p>
+      <p>Examine the "torch placement" input. If it is relative to the window centre, it is
+      approximately zero in all training data.</p></li>
+    <li><strong>Make sure that each planned bead is possible.</strong>
+      <p>The area equation sets the area. Find the bead width for each area in the 6,163 corpus
+      profiles. Use a lookup table, not a model.</p></li>
+    <li><strong>Measure the cost of the 12° margin.</strong>
+      <p>A 78° limit can add passes. Measure the number of added passes in the §7 test.</p></li>
+    <li><strong>Keep all samples in the training box.</strong>
+      <p>An optimizer on <em>f</em> finds the errors of <em>f</em>.</p></li>
+  </ul>
+</div>
+
+<h2><span class="sec">§6</span>Items not built</h2>
+<div class="scroll">
+<table>
+  <thead><tr><th>Item</th><th>Reason</th><th>Add it if</th></tr></thead>
+  <tbody>
+    <tr><td>Multi-pass look-ahead</td><td>The fill plan gives the foresight. The fill term cannot see bead position.</td><td>The simulator shows lack-of-fusion edges that a 2-pass check prevents.</td></tr>
+    <tr><td>20-D CEM, CMA-ES, mixture models</td><td>Each decision has 3 numbers. 1024 samples are sufficient.</td><td>The best of 1024 changes between runs by more than the 1 mm tolerance.</td></tr>
+    <tr><td>Gradient inverse through <em>f</em></td><td>The samples use only the values of <em>f</em>.</td><td>The number of knobs becomes more than approximately 10.</td></tr>
+    <tr><td>5-pass rollout trainer, differentiable R</td><td><em>f</em> does not chain.</td><td>A scan after each pass is not possible.</td></tr>
+    <tr><td>Re-rank of full plans with <em>f</em></td><td>This chains <em>f</em> across the build. The accumulated error makes the rank unreliable.</td><td>Do not add. Rank plans in the simulator, off-line.</td></tr>
+    <tr><td>Weighted cost J</td><td>A fixed rule, one distance and hard limits are sufficient.</td><td>A trade-off occurs that hard limits cannot show, for example cumulative heat against pass count. Then add one term only.</td></tr>
+    <tr><td>Better edge-angle model</td><td>The 12° margin covers the error.</td><td>The margin adds too many passes in the §7 test.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="sec">§7</span>Simulator test</h2>
+<div class="col">
+  <p>Do this test before you build the controller. Use the physics simulator as the plant. Do not use
+  <em>f</em> as the plant, because <em>f</em> cannot find its own errors.</p>
+</div>
+<div class="scroll">
+<table>
+  <thead><tr><th>Item</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Arms</td><td>A: one-pass greedy search with the action-first cost J. B: action-first, 5-pass CEM. C: this design. C+: this design with a 2-pass check.</td></tr>
+    <tr><td>Builds</td><td>31-pass builds on a minimum of 5 grooves. Use 10 grooves if the results are near. Use different grooves to tune the arms and to make the report.</td></tr>
+    <tr><td>Metrics</td><td>Edge angles of 90° or more (measured in the simulator). Unfilled area at the cap. Pass count. Cumulative heat input.</td></tr>
+    <tr><td>Report</td><td>IQM with stratified bootstrap confidence intervals.</td></tr>
+    <tr><td>Prediction</td><td>A and B fill approximately equally (deficit identity). A and B leave slots at the sidewalls. C has fewer lack-of-fusion edges with the same or fewer passes.</td></tr>
+    <tr><td>Refutation</td><td>B has fewer lack-of-fusion edges than C. Then test C+. If C+ is not better than B, keep the CEM.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="sec">§8</span>Build sequence</h2>
+<div class="col">
+  <p>Do the phases in this sequence. Do not start a phase before the gate of the previous phase
+  passes.</p>
+  <ol class="phases">
+    <li><div><h4>Audit <em>f</em></h4>
+      <p>Do the branch audit and the gate plot (§5). Select a checkpoint that sees the groove.</p>
+      <p class="gate">gate: a flat groove changes the prediction by much more than 0.01 mm</p></div></li>
+    <li><div><h4>Fill planner</h4>
+      <p>Make the list. Apply the area limits. Score each fill key. Select with the fixed rule.</p>
+      <p class="gate">gate: the area stays constant; a groove with a known solution gives the correct fill key; each planned bead is possible</p></div></li>
+    <li><div><h4>Bead matcher</h4>
+      <p>Sample. Calculate v_t from the area. Call <em>f</em> one time. Apply the limits. Select the
+      nearest sample.</p>
+      <p class="gate">gate: for simulator beads with known settings, the matched bead is in the 1 mm specification. Test the bead, not the settings. Different settings can give the same bead.</p></div></li>
+    <li><div><h4>Closed loop in the simulator</h4>
+      <p>Do the §7 test.</p>
+      <p class="gate">gate: C is equal to or better than B for lack-of-fusion edges and pass count</p></div></li>
+    <li><div><h4>Controller</h4>
+      <p>Add the residual classes and the escalation steps, as designed.</p>
+      <p class="gate">gate: the controller classifies injected distortion, bias and defect residuals correctly</p></div></li>
+  </ol>
+</div>
+
+<h2><span class="sec">A</span>Appendix: deficit identity check</h2>
+<div class="col">
+  <p>Groove: a V-groove in a 16 mm window at 0.1 mm intervals. Fill line: above the groove. Beads: a
+  cap with negative remelt at the edges, scaled to one net area. The test uses three positions and
+  one bead that goes above the fill line.</p>
+</div>
+<div class="scroll">
+<table>
+  <thead><tr><th>Bead</th><th>Centre (mm)</th><th>Width (mm)</th><th>Area A (mm²)</th><th>Decrease of D (mm²)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">−3.0</td><td class="num">5.0</td><td class="num">12</td><td class="num">12.0000</td></tr>
+    <tr><td>2</td><td class="num">0.0</td><td class="num">7.0</td><td class="num">12</td><td class="num">12.0000</td></tr>
+    <tr><td>3</td><td class="num">+2.5</td><td class="num">4.0</td><td class="num">12</td><td class="num">12.0000</td></tr>
+    <tr><td>Above g</td><td class="num">0.0</td><td class="num">3.0</td><td class="num">40</td><td class="num">18.2269</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="eq">import numpy as np
+x  = np.arange(161) * 0.1 - 8.0                           <span class="c"># mm, 16 mm window</span>
+s0 = np.abs(x) * np.tan(np.deg2rad(60)) * 0.5 - 6        <span class="c"># V-groove</span>
+g  = np.full_like(x, 4.0)                                 <span class="c"># fill line above the groove</span>
+D  = lambda s: np.maximum(0.0, g - s).sum() * 0.1
+
+def bead(xc, w, area, remelt=0.15):
+    u   = (x - xc) / (w / 2)
+    cap = np.where(np.abs(u) &lt; 1, np.cos(np.pi * u / 2) ** 2, 0.0)
+    h   = cap - remelt * np.exp(-((np.abs(u) - 1.1) ** 2) / 0.02)   <span class="c"># remelt is negative</span>
+    return h * area / (h.sum() * 0.1)
+
+for xc, w in [(-3.0, 5.0), (0.0, 7.0), (2.5, 4.0)]:
+    print(D(s0) - D(s0 + bead(xc, w, 12.0)))              <span class="c"># 12.0000 each time</span></div>
+
+<footer>
+  Source data: <em>Plan, Weld, Rescan</em> and <em>Two Ways to Plan a Weld</em> in this folder.
+  The appendix check is new. Items marked "prediction" are hypotheses for the §7 test.
+</footer>
+
+</div>
